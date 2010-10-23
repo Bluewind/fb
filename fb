@@ -1,0 +1,161 @@
+#!/bin/sh
+#----------------------------------------------------
+# Author:       Florian "Bluewind" Pritz <flo@xssn.at>
+# Contributor:  Moritz Wilhelmy
+#
+# Licensed under WTFPL v2
+#   (see COPYING for full license text)
+#
+#----------------------------------------------------
+# Dependencies: curl
+# Optional: xclip
+#----------------------------------------------------
+
+VERSION="0.6.8"
+
+DELETE=
+EXTENSION=""
+GET=
+TAR=
+COMPRESS=0
+TAREXT=".tar"
+TAROPTS=""
+PASTEBIN="http://paste.xinu.at"
+WARNSIZE=10485760
+USERAGENT="fb-client/$VERSION"
+CLIPBOARD=""
+EXITCODE=0
+
+do_upload() {
+  local EXTRA=""
+  file="$1"
+  basefilename="`basename "$file"`"
+  basedirname="`dirname "$file"`"
+  if [ -d "$file" ]; then
+    cd "$basedirname"
+    tar $TAROPTS -cf "$TMPDIR/$basefilename$TAREXT" "$basefilename"
+    COMPRESS=0
+    file="$TMPDIR/$basefilename$TAREXT"
+  fi
+
+  if [ "$COMPRESS" == "1" ]; then
+    gzip -c "$file" > "$TMPDIR/$basefilename.gz"
+    file="$TMPDIR/$basefilename.gz"
+  elif [ "$COMPRESS" == "2" ]; then
+    xz -c "$file" > "$TMPDIR/$basefilename.xz"
+    file="$TMPDIR/$basefilename.xz"
+  fi
+
+  if [ "$EXTENSION" ]; then
+    EXTRA="-F extension=$EXTENSION"
+  fi
+  TMPFILE=`mktemp "$TMPDIR/data.XXXXXX"`
+  if [ `stat -c %s "$file"` -gt "$WARNSIZE" ]; then
+    WARNSIZE=`curl -s "$PASTEBIN/file/get_max_size"`
+    if [ `stat -c %s "$file"` -gt "$WARNSIZE" ]; then
+      echo "Warning: Your upload is too big and would be rejected. Maximum size is: $WARNSIZE bytes. Skipping..." >&2
+      EXITCODE=1
+      return 1
+    fi
+  fi
+  if ! curl -# -n -L -A $USERAGENT $EXTRA -F "file=@$file" "$PASTEBIN/file/do_upload" > $TMPFILE; then
+    EXITCODE=1
+    return 1
+  fi
+  sed '$d' $TMPFILE >&2
+  URL=`tail -1 $TMPFILE`
+  echo $URL
+  CLIPBOARD="$CLIPBOARD $URL"
+}
+
+read_stdin() {
+  if tty -s; then
+    echo "^C to exit, ^D to send"
+  fi
+  cat > "$1"
+}
+
+help() {
+  cat <<!
+fb-client version $VERSION
+usage: [cat |] `basename "$0"` [switches] [options] [file(s)|ID(s)|folder(s)]
+
+  Upload/nopaste file(s)/stdin to paste.xinu.at and copy URL(s) to clipboard.
+  ~/.netrc: machine paste.xinu.at password PASSWORD
+
+  Switches:
+    -d             delete the IDs
+    -g             download the IDs and output on stdout (use with care!)
+    -t             upload a tar file containing all files (and directories)
+    -h             this help
+
+  Options:
+    These have no effect if used in conjunction with a switch
+    -e EXTENSION   extension for default highlighting (e.g. "diff")
+    -c             compress the file being uploaded with gz or xz if used 2 times
+!
+}
+
+while getopts "e:gdhtc" OPTION; do
+  case $OPTION in
+    e) EXTENSION="$OPTARG";;
+    g) GET=1;;
+    c) COMPRESS=`expr $COMPRESS + 1`
+       if [ "$COMPRESS" == "1" ]; then
+         TAROPTS="-z"
+         TAREXT=".tar.gz"
+       elif [ "$COMPRESS" == "2" ]; then
+         TAROPTS="-J"
+         TAREXT=".tar.xz"
+       fi
+       ;;
+    t) TAR=1;;
+    d) DELETE=1;;
+    h|\?) help; exit 0;;
+  esac
+done
+
+shift `expr $OPTIND - 1`
+
+
+TMPDIR="`mktemp -d "/tmp/fb.XXXXXX"`"
+trap "rm -rf '${TMPDIR}'" EXIT TERM
+
+if [ $# -eq 0 ]; then
+  read_stdin "$TMPDIR/stdin"
+  do_upload "$TMPDIR/stdin"
+else
+  if [ "$TAR" ]; then
+    tar $TAROPTS -cf "$TMPDIR/upload$TAREXT" "$@"
+    COMPRESS=0
+    do_upload "$TMPDIR/upload$TAREXT"
+    break
+  else
+    for i in "$@"; do
+      if [ "$DELETE" ]; then
+        if ! curl -n -L -A $USERAGENT "$PASTEBIN/file/delete/$i"; then
+          EXITCODE=1
+        fi
+      elif [ "$GET" ]; then
+        if ! curl -s -o - -A $USERAGENT "$PASTEBIN/$i"; then
+          EXITCODE=1
+        fi
+      elif echo "$i" | grep -qE "^(f|ht)tp(s)?://.+"; then
+        cd $TMPDIR
+        if ! curl -# -A $USERAGENT -O "$i"; then
+          EXITCODE=1
+          continue
+        fi
+        for f in *; do
+          do_upload "$f" && rm -f "$f"
+        done
+      else
+        do_upload "$i"
+      fi
+    done
+  fi
+fi
+
+[ "`which xclip 2>/dev/null`" ] && echo -n $CLIPBOARD | nohup xclip >/dev/null 2>&1
+
+exit $EXITCODE
