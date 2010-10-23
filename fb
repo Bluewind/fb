@@ -78,7 +78,7 @@ read_stdin() {
 help() {
   cat <<!
 fb-client version $VERSION
-usage: [cat |] `basename "$0"` [switches] [options] [file(s)|ID(s)|folder(s)]
+usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
 
   Upload/nopaste file(s)/stdin to paste.xinu.at and copy URL(s) to clipboard.
   ~/.netrc: machine paste.xinu.at password PASSWORD
@@ -91,7 +91,7 @@ usage: [cat |] `basename "$0"` [switches] [options] [file(s)|ID(s)|folder(s)]
 
   Options:
     These have no effect if used in conjunction with a switch
-    -e EXTENSION   extension for default highlighting (e.g. "diff")
+    -e <extension>   extension for default highlighting (e.g. "diff")
     -c             compress the file being uploaded with gz or xz if used 2 times
 !
 }
