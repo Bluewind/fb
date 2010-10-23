@@ -9,7 +9,9 @@ clean:
 install:
 	install -Dm755 fb $(DESTDIR)/usr/bin/fb
 	install -Dm644 fb.1 $(DESTDIR)/usr/share/man/man1/fb.1
+	install -Dm644 COPYING $(DESTDIR)/usr/share/licenses/fb/COPYING
 
 uninstall:
 	rm $(DESTDIR)/usr/bin/fb
 	rm $(DESTDIR)/usr/share/man/man1/fb.1
+	rm $(DESTDIR)/usr/share/licenses/fb/COPYING
