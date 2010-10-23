@@ -1,0 +1,68 @@
+=head1 NAME
+
+C<fb> - a client for http://paste.xinu.at
+
+=head1 SYNOPSIS
+
+fb [switches] [options] [<file(s)|ID(s)|folder(s)>]
+
+=head1 DESCRIPTION
+
+C<fb> is a client to http://paste.xinu.at which allows the user to easily upload,
+delete or download files. 
+
+By default, files will be uploaded as-is and a link to the file will be printed
+to stdout after each upload. At the end C<fb> will try to copy all links into the
+X clipboard if xclip is installed.
+
+Folders will be tar'ed and the resulting upload.tar file will be uploaded.
+
+If no arguments are given, C<fb> will read data from stdin into a temporary file
+which will be uploaded once EOF is received.
+
+If the file being uploaded is bigger than 10MB C<fb> will query the server for the
+maximum upload size and abort the upload in case the file would be rejected.
+
+=head1 SWITCHES
+
+-d
+   Delete the IDs. You can no longer upload files in this mode.
+
+-g 
+   Download the IDs and output on stdout. Please take care when using this,
+   as binary data can cause unexpected results when being output directly 
+   to a terminal. You can no longer upload files in this mode.
+
+-t 
+   Upload a tar file containing all files and directories specified on the
+   command line. 
+
+-h 
+   Display a short help message.
+
+
+=head1 OPTIONS
+
+-e <extension>
+   Change the extension used for highlighting. You can also do this if you
+   have already uploaded the file by appending the extension to the URL.
+   http://paste.xinu.at/<ID>/bash will change the syntax highlighting to bash.
+
+-c
+   Enable compression of the uploaded files. This affects all files including 
+   piped content and folders. 
+
+   Specify this option once to use gzip or two times to use xz.
+
+=head1 EXAMPLES
+
+fb -tc <folder> <file>
+  This will create a .tar archive containing the folder and the file and compress
+  it using gzip and upload one archive.
+
+fb -c <folder> <file>
+  This will create a .tar archive of the folder only, compress both using gzip, the archive
+  and the file and upload both independently.
+
+fb -cc <folder>
+  This will create a .tar archive containing only the folder and compress it using xz.
