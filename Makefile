@@ -24,3 +24,6 @@ dist: all
 	cp -a fb fb.pod fb.1 COPYING Makefile dist/fb-$(VERSION)
 	sed -i 's/^VERSION=.*$$/VERSION="'$(VERSION)'"/' dist/fb-$(VERSION)/fb
 	cd dist; tar -czf fb-$(VERSION).tar.gz fb-$(VERSION)
+
+version:
+	@echo $(VERSION)
