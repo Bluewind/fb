@@ -11,7 +11,7 @@
 # Optional: xclip
 #----------------------------------------------------
 
-VERSION="0.6.8.1"
+VERSION="0.6.8.2"
 
 DELETE=
 EXTENSION=""
@@ -58,7 +58,7 @@ do_upload() {
       return 1
     fi
   fi
-  if ! curl -# -n -L -A $USERAGENT $EXTRA -F "file=@$file" "$PASTEBIN/file/do_upload" > $TMPFILE; then
+  if ! cat "$file" | curl -# -n -L -A $USERAGENT $EXTRA -F "file=@-;filename=$basefilename" "$PASTEBIN/file/do_upload" > $TMPFILE; then
     EXITCODE=1
     return 1
   fi
