@@ -23,6 +23,9 @@ which will be uploaded once EOF is received.
 If the file being uploaded is bigger than 10MB C<fb> will query the server for the
 maximum upload size and abort the upload in case the file would be rejected.
 
+If you want to be able to delte files, you have to add the following line to ~/.netrc
+  machine paste.xinu.at password <your_secret_password>
+
 =head1 SWITCHES
 
 -d
