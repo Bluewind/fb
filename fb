@@ -58,9 +58,17 @@ do_upload() {
       return 1
     fi
   fi
-  if ! cat "$file" | curl -# -n -L -A $USERAGENT $EXTRA -F "file=@-;filename=$basefilename" "$PASTEBIN/file/do_upload" > $TMPFILE; then
-    EXITCODE=1
-    return 1
+  CURLOPTS="-# -n -L -A $USERAGENT $EXTRA"
+  if [ `stat -c %s "$file"` -eq "0" ]; then
+    if ! curl $CURLOPTS -F "file=@-;filename=$basefilename" "$PASTEBIN/file/do_upload" < "$file" > $TMPFILE; then
+      EXITCODE=1
+      return 1
+    fi
+  else
+    if ! curl $CURLOPTS -F "file=@$file" "$PASTEBIN/file/do_upload" > $TMPFILE; then
+      EXITCODE=1
+      return 1
+    fi
   fi
   sed '$d' $TMPFILE >&2
   URL=`tail -1 $TMPFILE`
