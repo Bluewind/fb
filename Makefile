@@ -1,4 +1,6 @@
-VERSION=`git describe | sed 's/^v//'`
+VERSION:=$(shell git describe | sed 's/^v//')
+MANDIR=/usr/share/man
+BINDIR=/usr/bin
 
 all: fb.1
 
@@ -10,14 +12,12 @@ clean:
 	rm -rf dist
 
 install: all
-	install -Dm755 fb $(DESTDIR)/usr/bin/fb
-	install -Dm644 fb.1 $(DESTDIR)/usr/share/man/man1/fb.1
-	install -Dm644 COPYING $(DESTDIR)/usr/share/licenses/fb/COPYING
+	install -Dm755 fb $(DESTDIR)$(BINDIR)/fb
+	install -Dm644 fb.1 $(DESTDIR)$(MANDIR)/man1/fb.1
 
 uninstall:
-	rm -f $(DESTDIR)/usr/bin/fb
-	rm -f $(DESTDIR)/usr/share/man/man1/fb.1
-	rm -f $(DESTDIR)/usr/share/licenses/fb/COPYING
+	rm -f $(DESTDIR)$(BINDIR)/fb
+	rm -f $(DESTDIR)$(MANDIR)/man1/fb.1
 
 dist: all
 	mkdir -p dist/fb-$(VERSION)
