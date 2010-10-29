@@ -34,20 +34,20 @@ EXITCODE=0
 do_upload() {
   local EXTRA=""
   file="$1"
-  basefilename="`basename "$file"`"
-  basedirname="`dirname "$file"`"
+  basefilename="`basename -- "$file"`"
+  basedirname="`dirname -- "$file"`"
   if [ -d "$file" ]; then
     cd "$basedirname"
-    tar $TAROPTS -cf "$TMPDIR/$basefilename$TAREXT" "$basefilename"
+    tar $TAROPTS -cf "$TMPDIR/$basefilename$TAREXT" -- "$basefilename"
     COMPRESS=0
     file="$TMPDIR/$basefilename$TAREXT"
   fi
 
   if [ "$COMPRESS" == "1" ]; then
-    gzip -c "$file" > "$TMPDIR/$basefilename.gz"
+    gzip -c -- "$file" > "$TMPDIR/$basefilename.gz"
     file="$TMPDIR/$basefilename.gz"
   elif [ "$COMPRESS" == "2" ]; then
-    xz -c "$file" > "$TMPDIR/$basefilename.xz"
+    xz -c -- "$file" > "$TMPDIR/$basefilename.xz"
     file="$TMPDIR/$basefilename.xz"
   fi
 
@@ -55,16 +55,16 @@ do_upload() {
     EXTRA="-F extension=$EXTENSION"
   fi
   TMPFILE=`mktemp "$TMPDIR/data.XXXXXX"`
-  if [ `stat -c %s "$file"` -gt "$WARNSIZE" ]; then
+  if [ `stat -c %s -- "$file"` -gt "$WARNSIZE" ]; then
     WARNSIZE=`curl -s "$PASTEBIN/file/get_max_size"`
-    if [ `stat -c %s "$file"` -gt "$WARNSIZE" ]; then
+    if [ `stat -c %s -- "$file"` -gt "$WARNSIZE" ]; then
       echo "Warning: Your upload is too big and would be rejected. Maximum size is: $WARNSIZE bytes. Skipping..." >&2
       EXITCODE=1
       return 1
     fi
   fi
   CURLOPTS="-# -n -L -A $USERAGENT $EXTRA"
-  if [ `stat -c %s "$file"` -eq "0" ]; then
+  if [ `stat -c %s -- "$file"` -eq "0" ]; then
     if ! curl $CURLOPTS -F "file=@-;filename=$basefilename" "$PASTEBIN/file/do_upload" < "$file" > $TMPFILE; then
       EXITCODE=1
       return 1
@@ -139,7 +139,7 @@ if [ $# -eq 0 ]; then
   do_upload "$TMPDIR/stdin"
 else
   if [ "$TAR" ]; then
-    tar $TAROPTS -cf "$TMPDIR/upload$TAREXT" "$@"
+    tar $TAROPTS -cf "$TMPDIR/upload$TAREXT" -- "$@"
     COMPRESS=0
     do_upload "$TMPDIR/upload$TAREXT"
     break
@@ -160,7 +160,7 @@ else
           continue
         fi
         for f in *; do
-          do_upload "$f" && rm -f "$f"
+          do_upload "$f" && rm -f -- "$f"
         done
       else
         do_upload "$i"
