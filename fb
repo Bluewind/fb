@@ -109,7 +109,7 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
 !
 }
 
-while getopts "e:gdhtc" OPTION; do
+while getopts "e:gdhtcv" OPTION; do
   case $OPTION in
     e) EXTENSION="$OPTARG";;
     g) GET=1;;
@@ -124,6 +124,7 @@ while getopts "e:gdhtc" OPTION; do
        ;;
     t) TAR=1;;
     d) DELETE=1;;
+    v) echo "$VERSION"; exit 0;;
     h|\?) help; exit 0;;
   esac
 done
