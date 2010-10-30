@@ -11,12 +11,7 @@
 # Optional: xclip
 #----------------------------------------------------
 
-SCRIPTDIR="`dirname "$0"`"
-VERSION="`cd $SCRIPTDIR; git describe 2>/dev/null | sed 's/^v//'`"
-
-if [ -z "$VERSION" ]; then
-  VERSION="unknown"
-fi
+VERSION="@VERSION@"
 
 DELETE=
 EXTENSION=""
