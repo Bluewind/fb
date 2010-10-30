@@ -101,6 +101,7 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
     -g             download the IDs and output on stdout (use with care!)
     -t             upload a tar file containing all files (and directories)
     -h             this help
+    -v             show the client version
 
   Options:
     These have no effect if used in conjunction with a switch

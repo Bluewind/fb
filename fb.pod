@@ -43,6 +43,9 @@ If you want to be able to delete files, you have to add the following line to ~/
 -h 
    Display a short help message.
 
+-v
+   Display the client version.
+
 
 =head1 OPTIONS
 
