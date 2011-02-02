@@ -36,10 +36,6 @@ If you want to be able to delete files, you have to add the following line to ~/
    as binary data can cause unexpected results when being output directly 
    to a terminal. You can no longer upload files in this mode.
 
--t 
-   Upload a tar file containing all files and directories specified on the
-   command line. 
-
 -h 
    Display a short help message.
 
@@ -53,6 +49,10 @@ If you want to be able to delete files, you have to add the following line to ~/
    Change the extension used for highlighting. You can also do this if you
    have already uploaded the file by appending the extension to the URL.
    http://paste.xinu.at/<ID>/bash will change the syntax highlighting to bash.
+
+-t
+   Upload a tar file containing all files and directories specified on the
+   command line.
 
 -c
    Enable compression of the uploaded files. This affects all files including 
