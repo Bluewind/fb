@@ -9,7 +9,7 @@ fb [switches] [options] [<file(s)|ID(s)|folder(s)>]
 =head1 DESCRIPTION
 
 C<fb> is a client to http://paste.xinu.at which allows the user to easily upload,
-delete or download files. 
+delete or download files.
 
 By default, files will be uploaded as-is and a link to the file will be printed
 to stdout after each upload. At the end C<fb> will try to copy all links into the
@@ -32,13 +32,13 @@ If you want to be able to delete files, you have to add the following line to ~/
    Delete the IDs. You can no longer upload files in this mode.
    If the argument is a URL, C<fb> will try to extract the ID.
 
--g 
+-g
    Download the IDs and output on stdout. Please take care when using this,
-   as binary data can cause unexpected results when being output directly 
+   as binary data can cause unexpected results when being output directly
    to a terminal. You can no longer upload files in this mode.
    If the argument is a URL, C<fb> will try to extract the ID.
 
--h 
+-h
    Display a short help message.
 
 -v
@@ -57,8 +57,8 @@ If you want to be able to delete files, you have to add the following line to ~/
    command line.
 
 -c
-   Enable compression of the uploaded files. This affects all files including 
-   piped content and folders. 
+   Enable compression of the uploaded files. This affects all files including
+   piped content and folders.
 
    Specify this option once to use gzip or two times to use xz.
 
