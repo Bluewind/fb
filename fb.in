@@ -38,10 +38,10 @@ do_upload() {
 		file="$TMPDIR/$basefilename$TAREXT"
 	fi
 
-	if [ "$COMPRESS" == "1" ]; then
+	if [ "$COMPRESS" = "1" ]; then
 		gzip -c -- "$file" > "$TMPDIR/$basefilename.gz"
 		file="$TMPDIR/$basefilename.gz"
-	elif [ "$COMPRESS" == "2" ]; then
+	elif [ "$COMPRESS" = "2" ]; then
 		xz -c -- "$file" > "$TMPDIR/$basefilename.xz"
 		file="$TMPDIR/$basefilename.xz"
 	fi
