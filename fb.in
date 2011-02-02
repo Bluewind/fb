@@ -84,6 +84,14 @@ read_stdin() {
 	cat > "$1"
 }
 
+id_from_arg() {
+	if echo "$1" | grep -qE "^https?://"; then
+		echo "$1" | sed -r 's/https?:\/\/[^\/]+\/([^\/]+).*/\1/'
+	else
+		echo "$1"
+	fi
+}
+
 help() {
 	cat <<!
 fb-client version $VERSION
@@ -144,10 +152,12 @@ else
 	else
 		for i in "$@"; do
 			if [ "$DELETE" ]; then
+				i=$(id_from_arg "$i")
 				if ! curl -n -L -A $USERAGENT "$PASTEBIN/file/delete/$i"; then
 					EXITCODE=1
 				fi
 			elif [ "$GET" ]; then
+				i=$(id_from_arg "$i")
 				if ! curl -s -o - -A $USERAGENT "$PASTEBIN/$i"; then
 					EXITCODE=1
 				fi

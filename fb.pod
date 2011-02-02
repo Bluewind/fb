@@ -30,11 +30,13 @@ If you want to be able to delete files, you have to add the following line to ~/
 
 -d
    Delete the IDs. You can no longer upload files in this mode.
+   If the argument is a URL, C<fb> will try to extract the ID.
 
 -g 
    Download the IDs and output on stdout. Please take care when using this,
    as binary data can cause unexpected results when being output directly 
    to a terminal. You can no longer upload files in this mode.
+   If the argument is a URL, C<fb> will try to extract the ID.
 
 -h 
    Display a short help message.
