@@ -89,20 +89,20 @@ help() {
 fb-client version $VERSION
 usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
 
-	Upload/nopaste file(s)/stdin to paste.xinu.at and copy URL(s) to clipboard.
-	~/.netrc: machine paste.xinu.at password PASSWORD
+  Upload/nopaste file(s)/stdin to paste.xinu.at and copy URL(s) to clipboard.
+  ~/.netrc: machine paste.xinu.at password PASSWORD
 
-	Switches:
-		-d						 delete the IDs
-		-g						 download the IDs and output on stdout (use with care!)
-		-t						 upload a tar file containing all files (and directories)
-		-h						 this help
-		-v						 show the client version
+  Switches:
+    -d             delete the IDs
+    -g             download the IDs and output on stdout (use with care!)
+    -t             upload a tar file containing all files (and directories)
+    -h             this help
+    -v             show the client version
 
-	Options:
-		These have no effect if used in conjunction with a switch
-		-e <extension>	 extension for default highlighting (e.g. "diff")
-		-c						 compress the file being uploaded with gz or xz if used 2 times
+  Options:
+    These have no effect if used in conjunction with a switch
+    -e <extension>   extension for default highlighting (e.g. "diff")
+    -c             compress the file being uploaded with gz or xz if used 2 times
 !
 }
 
