@@ -25,6 +25,7 @@ WARNSIZE=10485760
 USERAGENT="fb-client/$VERSION"
 CLIPBOARD=""
 EXITCODE=0
+LIBDIR="@LIBDIR@"
 
 do_upload() {
 	local EXTRA=""
@@ -53,9 +54,6 @@ do_upload() {
 		file="$TMPDIR/$basefilename.xz"
 	fi
 
-	if [ "$EXTENSION" ]; then
-		EXTRA="-F extension=$EXTENSION"
-	fi
 	TMPFILE=`mktemp "$TMPDIR/data.XXXXXX"`
 	if [ `stat -c %s -- "$file"` -gt "$WARNSIZE" ]; then
 		WARNSIZE=`curl -s "$PASTEBIN/file/get_max_size"`
@@ -65,21 +63,12 @@ do_upload() {
 			return 1
 		fi
 	fi
-	CURLOPTS="-# -n -L -A $USERAGENT $EXTRA"
-	if [ `stat -c %s -- "$file"` -eq "0" ] || echo "$file" | grep -F -q ","; then
-		basefilename=`echo "$basefilename" | tr -d ,`
-		if ! curl $CURLOPTS -F "file=@-;filename=$basefilename" "$PASTEBIN/file/do_upload" < "$file" > $TMPFILE; then
-			EXITCODE=1
-			return 1
-		fi
-	else
-		if ! curl $CURLOPTS -F "file=@$file" "$PASTEBIN/file/do_upload" > $TMPFILE; then
-			EXITCODE=1
-			return 1
-		fi
+	if ! $LIBDIR/fb-upload "$PASTEBIN/file/do_upload" "$file" > $TMPFILE; then
+		EXITCODE=1
+		return 1
 	fi
 	sed '$d' $TMPFILE >&2
-	URL=`tail -1 $TMPFILE`
+	URL=`tail -1 $TMPFILE`"$EXTENSION"
 	echo $URL
 	CLIPBOARD="$CLIPBOARD $URL"
 }
