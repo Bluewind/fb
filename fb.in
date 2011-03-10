@@ -31,6 +31,13 @@ do_upload() {
 	file="$1"
 	basefilename="`basename -- "$file"`"
 	basedirname="`dirname -- "$file"`"
+
+	if [ ! -e "$file" ]; then
+		echo "Error: File \"$file\" doesn't exist" >&2
+		EXITCODE=1
+		return 1
+	fi
+
 	if [ -d "$file" ]; then
 		cd "$basedirname"
 		tar $TAROPTS -cf "$TMPDIR/$basefilename$TAREXT" -- "$basefilename"
