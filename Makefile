@@ -44,3 +44,5 @@ dist: all
 
 version:
 	@echo $(VERSION)
+
+.PHONY: all install clean uninstall version dist
