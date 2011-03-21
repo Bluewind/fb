@@ -74,7 +74,7 @@ int progress_callback(void *cb_data,
 
 	/* upload complete; clean up */
 	if (ulnow >= ultotal) {
-		fprintf(stderr, "\r");
+		fprintf(stderr, "%*s\r", data->lastStringLength + 1, "");
 		return 0;
 	}
 
