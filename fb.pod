@@ -18,10 +18,10 @@ X clipboard if xclip is installed.
 Folders will be tar'ed and the resulting upload.tar file will be uploaded.
 
 If no arguments are given, C<fb> will read data from stdin into a temporary file
-which will be uploaded once EOF is received.
+that will be uploaded once EOF is received.
 
 If the file being uploaded is bigger than 10MB C<fb> will query the server for the
-maximum upload size and abort the upload in case the file would be rejected.
+maximum upload size and abort the upload if the file would be rejected.
 
 If you want to be able to delete files, you have to add the following line to ~/.netrc
   machine paste.xinu.at password <your_secret_password>
@@ -34,7 +34,7 @@ If you want to be able to delete files, you have to add the following line to ~/
 
 -g
    Download the IDs and output on stdout. Please take care when using this,
-   as binary data can cause unexpected results when being output directly
+   as binary data may cause unexpected results when being output directly
    to a terminal. You can no longer upload files in this mode.
    If the argument is a URL, C<fb> will try to extract the ID.
 
@@ -69,8 +69,8 @@ fb -tc <folder> <file>
   it using gzip and upload one archive.
 
 fb -c <folder> <file>
-  This will create a .tar archive of the folder only, compress both using gzip, the archive
-  and the file and upload both independently.
+  This will create a .tar archive containing only the folder. Both (folder and file)
+  will be compressed using gzip and uploaded independently.
 
 fb -cc <folder>
   This will create a .tar archive containing only the folder and compress it using xz.
