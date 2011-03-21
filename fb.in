@@ -63,9 +63,27 @@ do_upload() {
 			return 1
 		fi
 	fi
-	if ! $LIBDIR/fb-upload "$PASTEBIN/file/do_upload" "$file" > $TMPFILE; then
-		EXITCODE=1
-		return 1
+
+	# fb-upload handles corner cases (comma in the filename) better
+	if [ -x "$LIBDIR/fb-upload" ]; then
+		if ! $LIBDIR/fb-upload "$PASTEBIN/file/do_upload" "$file" > $TMPFILE; then
+			EXITCODE=1
+			return 1
+		fi
+	else
+		CURLOPTS="-# -n -L -A $USERAGENT $EXTRA"
+		if [ `stat -c %s -- "$file"` -eq "0" ] || echo "$file" | grep -F -q ","; then
+			basefilename=`echo "$basefilename" | tr -d ,`
+			if ! curl $CURLOPTS -F "file=@-;filename=$basefilename" "$PASTEBIN/file/do_upload" < "$file" > $TMPFILE; then
+				EXITCODE=1
+				return 1
+			fi
+		else
+			if ! curl $CURLOPTS -F "file=@$file" "$PASTEBIN/file/do_upload" > $TMPFILE; then
+				EXITCODE=1
+				return 1
+			fi
+		fi
 	fi
 	sed '$d' $TMPFILE >&2
 	URL=`tail -1 $TMPFILE`"$EXTENSION"
