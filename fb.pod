@@ -74,3 +74,6 @@ fb -c <folder> <file>
 
 fb -cc <folder>
   This will create a .tar archive containing only the folder and compress it using xz.
+
+make |& fb
+  This will upload the output of make (stdout and stderr).
