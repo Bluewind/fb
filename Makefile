@@ -12,17 +12,17 @@ fb: fb.in
 	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(LIBDIR)|' fb.in > fb
 	chmod 755 fb
 
-fb.c: fb.c.in
-	sed 's/@VERSION@/$(VERSION)/' fb.c.in > fb.c
+fb-upload.c: fb-upload.c.in
+	sed 's/@VERSION@/$(VERSION)/' fb-upload.c.in > fb-upload.c
 
-fb-upload: fb.c
-	$(CC) $(CFLAGS) -lcurl -lm -o fb-upload fb.c
+fb-upload: fb-upload.c
+	$(CC) $(CFLAGS) -lcurl -lm -o fb-upload fb-upload.c
 
 fb.1: fb.pod
 	pod2man -c "" fb.pod fb.1
 
 clean:
-	rm -f fb.1 fb fb.c fb-upload
+	rm -f fb.1 fb fb-upload.c fb-upload
 	rm -rf dist
 
 install: all
@@ -38,7 +38,7 @@ uninstall:
 dist: all
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
 	mkdir -p dist/fb-$(VERSION)
-	cp -a fb fb.c fb.in fb.pod fb.1 COPYING Makefile dist/fb-$(VERSION)
+	cp -a fb fb-upload.c fb.in fb.pod fb.1 COPYING Makefile dist/fb-$(VERSION)
 	sed -i 's/^VERSION:=.*$$/VERSION:="'$(VERSION)'"/' dist/fb-$(VERSION)/Makefile
 	cd dist; tar -czf fb-$(VERSION).tar.gz fb-$(VERSION)
 
