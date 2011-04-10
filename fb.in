@@ -191,7 +191,7 @@ else
 	fi
 fi
 
-[ "`which xclip 2>/dev/null`" ] && echo -n $CLIPBOARD | nohup xclip >/dev/null 2>&1
+[ "`type xclip 2>/dev/null`" ] && echo -n $CLIPBOARD | nohup xclip >/dev/null 2>&1
 
 exit $EXITCODE
 
