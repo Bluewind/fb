@@ -22,6 +22,8 @@
 #include <curl/types.h>
 #include <curl/easy.h>
 
+#define FORMAT_ARRAY_SIZE 5
+
 /* struct which holds the persistent data for progress_callback */
 struct progressData {
 	struct timeval starttime;
@@ -62,11 +64,20 @@ int load_file(const char *fn, char **data, size_t *data_size)
 void format_bytes(double bytes, char *buf)
 {
 	double base = 0;
-	char suffix[][4] = {"B", "KiB", "MiB", "GiB", "TiB"};
+	int suffix_pos = 0;
+	char suffix[FORMAT_ARRAY_SIZE][4] = {"B", "KiB", "MiB", "GiB", "TiB"};
 
 	base = log(bytes) / log(1024);
+	suffix_pos = (int)floor(base);
 
-	snprintf(buf, 64, "%.2f%s", pow(1024, base - floor(base)), suffix[(int)floor(base)]);
+	if (suffix_pos >= FORMAT_ARRAY_SIZE)
+		suffix_pos = FORMAT_ARRAY_SIZE-1;
+
+	if (suffix_pos > 0) {
+		snprintf(buf, 64, "%.2f%s", pow(1024, base - suffix_pos), suffix[suffix_pos]);
+	} else {
+		snprintf(buf, 64, "%.2fB", bytes);
+	}
 }
 
 int progress_callback(void *cb_data,
