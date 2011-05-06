@@ -157,6 +157,8 @@ int main(int argc, char *argv[])
 	char *data = NULL;
 	size_t data_size = 0;
 
+	int ret = 0;
+
 	/* simple arg check */
 	if(argc != 3)
 		return 1;
@@ -214,12 +216,20 @@ int main(int argc, char *argv[])
 		gettimeofday(&cb_data.starttime, NULL);
 		res = curl_easy_perform(curl);
 
+		if (res != 0) {
+			fprintf(stderr, "\r%s\n", curl_easy_strerror(res));
+			ret = 1;
+		}
+
 		/* cleanup */
 		curl_easy_cleanup(curl);
 		curl_formfree(formpost);
 		curl_slist_free_all (headerlist);
 		curl_global_cleanup();
 		free(data);
+	} else {
+		fprintf(stderr, "Error initializing curl");
+		ret = 1;
 	}
-	return 0;
+	return ret;
 }
