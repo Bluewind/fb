@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 		res = curl_easy_perform(curl);
 
 		if (res != 0) {
-			fprintf(stderr, "\r%s\n", curl_easy_strerror(res));
+			fprintf(stderr, "\n%s\n", curl_easy_strerror(res));
 			ret = 1;
 		}
 
