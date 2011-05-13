@@ -213,6 +213,8 @@ int main(int argc, char *argv[])
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
 		curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+		curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, (long)1);
+		curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, (long)30);
 		gettimeofday(&cb_data.starttime, NULL);
 		res = curl_easy_perform(curl);
 
