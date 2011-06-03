@@ -115,8 +115,8 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
   ~/.netrc: machine paste.xinu.at password PASSWORD
 
   Switches:
-    -d             delete the IDs
-    -g             download the IDs and output on stdout (use with care!)
+    -d <ID(s)>     delete the IDs
+    -g <ID(s)>     download the IDs and output on stdout (use with care!)
     -h             this help
     -v             show the client version
 
