@@ -154,7 +154,21 @@ shift `expr $OPTIND - 1`
 TMPDIR="`mktemp -d "/tmp/fb.XXXXXX"`"
 trap "rm -rf '${TMPDIR}'" EXIT TERM
 
-if [ $# -eq 0 ]; then
+if [ "$DELETE" ] || [ "$GET" ]; then
+	[ $# -eq 0 ] && exit 1;
+	for i in "$@"; do
+		i=$(id_from_arg "$i")
+		if [ "$DELETE" ]; then
+			if ! curl -n -L -A $USERAGENT "$PASTEBIN/file/delete/$i"; then
+				EXITCODE=1
+			fi
+		elif [ "$GET" ]; then
+			if ! curl -s -o - -A $USERAGENT "$PASTEBIN/$i"; then
+				EXITCODE=1
+			fi
+		fi
+	done
+elif [ $# -eq 0 ]; then
 	read_stdin "$TMPDIR/stdin"
 	do_upload "$TMPDIR/stdin"
 else
@@ -165,17 +179,7 @@ else
 		break
 	else
 		for i in "$@"; do
-			if [ "$DELETE" ]; then
-				i=$(id_from_arg "$i")
-				if ! curl -n -L -A $USERAGENT "$PASTEBIN/file/delete/$i"; then
-					EXITCODE=1
-				fi
-			elif [ "$GET" ]; then
-				i=$(id_from_arg "$i")
-				if ! curl -s -o - -A $USERAGENT "$PASTEBIN/$i"; then
-					EXITCODE=1
-				fi
-			elif echo "$i" | grep -qE "^(f|ht)tp(s)?://.+"; then
+			if echo "$i" | grep -qE "^(f|ht)tp(s)?://.+"; then
 				cd $TMPDIR
 				if ! curl -# -A $USERAGENT -O "$i"; then
 					EXITCODE=1
