@@ -168,6 +168,10 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 		fi
 	done
 elif [ $# -eq 0 ]; then
+	if [ "$TAR" ]; then
+		echo "Error: -t is not supported when operating on stdin" >&2
+		exit 1
+	fi
 	read_stdin "$TMPDIR/stdin"
 	do_upload "$TMPDIR/stdin"
 else
