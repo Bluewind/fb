@@ -159,13 +159,9 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 	for i in "$@"; do
 		i=$(id_from_arg "$i")
 		if [ "$DELETE" ]; then
-			if ! curl -n -L -A $USERAGENT "$PASTEBIN/file/delete/$i"; then
-				EXITCODE=1
-			fi
+			curl -n -L -A $USERAGENT "$PASTEBIN/file/delete/$i" || EXITCODE=1
 		elif [ "$GET" ]; then
-			if ! curl -s -o - -A $USERAGENT "$PASTEBIN/$i"; then
-				EXITCODE=1
-			fi
+			curl -s -o - -A $USERAGENT "$PASTEBIN/$i" || EXITCODE=1
 		fi
 	done
 elif [ $# -eq 0 ]; then
