@@ -156,7 +156,7 @@ trap "rm -rf '${TMPDIR}'" EXIT TERM
 
 if [ "$DELETE" ] || [ "$GET" ]; then
 	if [ $# -eq 0 ]; then
-		echo "Error: no ID specified"
+		echo "Error: no ID specified" >&2
 		exit 1
 	fi
 	for i in "$@"; do
