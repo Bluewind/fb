@@ -123,8 +123,8 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
   Options:
     These have no effect if used in conjunction with a switch
     -e <extension>   extension for default highlighting (e.g. "diff")
-    -t             upload a tar file containing all files (and directories)
-    -c             compress the file being uploaded with gz or xz if used 2 times
+    -t               upload a tar file containing all files (and directories)
+    -c               compress the file being uploaded with gz or xz if used 2 times
 !
 }
 
