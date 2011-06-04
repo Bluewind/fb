@@ -1,5 +1,5 @@
 dist
 fb.1
 fb
-fb-upload
-fb-upload.c
+fb-helper
+fb-helper.c

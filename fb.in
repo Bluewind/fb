@@ -7,8 +7,7 @@
 #   (see COPYING for full license text)
 #
 #----------------------------------------------------
-# Dependencies: curl
-# Optional: xclip
+# Optional dependency: xclip
 #----------------------------------------------------
 
 VERSION="@VERSION@"
@@ -56,7 +55,7 @@ do_upload() {
 
 	TMPFILE=`mktemp "$TMPDIR/data.XXXXXX"`
 	if [ `stat -c %s -- "$file"` -gt "$WARNSIZE" ]; then
-		WARNSIZE=`curl -s "$PASTEBIN/file/get_max_size"`
+		WARNSIZE=`$LIBDIR/fb-helper d "$PASTEBIN/file/get_max_size"`
 		if [ `stat -c %s -- "$file"` -gt "$WARNSIZE" ]; then
 			echo "Warning: Your upload is too big and would be rejected. Maximum size is: $WARNSIZE bytes. Skipping..." >&2
 			EXITCODE=1
@@ -64,26 +63,9 @@ do_upload() {
 		fi
 	fi
 
-	# fb-upload handles corner cases (comma in the filename) better
-	if [ -x "$LIBDIR/fb-upload" ]; then
-		if ! $LIBDIR/fb-upload "$PASTEBIN/file/do_upload" "$file" > $TMPFILE; then
-			EXITCODE=1
-			return 1
-		fi
-	else
-		CURLOPTS="-# -n -L -A $USERAGENT $EXTRA"
-		if [ `stat -c %s -- "$file"` -eq "0" ] || echo "$file" | grep -F -q ","; then
-			basefilename=`echo "$basefilename" | tr -d ,`
-			if ! curl $CURLOPTS -F "file=@-;filename=$basefilename" "$PASTEBIN/file/do_upload" < "$file" > $TMPFILE; then
-				EXITCODE=1
-				return 1
-			fi
-		else
-			if ! curl $CURLOPTS -F "file=@$file" "$PASTEBIN/file/do_upload" > $TMPFILE; then
-				EXITCODE=1
-				return 1
-			fi
-		fi
+	if ! $LIBDIR/fb-helper u "$PASTEBIN/file/do_upload" "$file" > $TMPFILE; then
+		EXITCODE=1
+		return 1
 	fi
 	sed '$d' $TMPFILE >&2
 	URL=`tail -1 $TMPFILE`"$EXTENSION"
@@ -162,9 +144,9 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 	for i in "$@"; do
 		i=$(id_from_arg "$i")
 		if [ "$DELETE" ]; then
-			curl -n -L -A $USERAGENT "$PASTEBIN/file/delete/$i" || EXITCODE=1
+			$LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i" || EXITCODE=1
 		elif [ "$GET" ]; then
-			curl -s -o - -A $USERAGENT "$PASTEBIN/$i" || EXITCODE=1
+			$LIBDIR/fb-helper d "$PASTEBIN/$i" || EXITCODE=1
 		fi
 	done
 elif [ $# -eq 0 ]; then
@@ -184,7 +166,7 @@ else
 		for i in "$@"; do
 			if echo "$i" | grep -qE "^(f|ht)tp(s)?://.+"; then
 				cd $TMPDIR
-				if ! curl -# -A $USERAGENT -O "$i"; then
+				if ! $LIBDIR/fb-helper d "$i" > "`basename "$i"`"; then
 					EXITCODE=1
 					continue
 				fi
