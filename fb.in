@@ -26,6 +26,13 @@ CLIPBOARD=""
 EXITCODE=0
 LIBDIR="@LIBDIR@"
 
+require_executable() {
+	if ! type $1 >/dev/null; then
+		echo "Error: $1 not found. Please install." >&2
+		exit 1
+	fi
+}
+
 do_upload() {
 	local EXTRA=""
 	file="$1"
@@ -46,9 +53,11 @@ do_upload() {
 	fi
 
 	if [ "$COMPRESS" = "1" ]; then
+		require_executable gzip
 		gzip -c -- "$file" > "$TMPDIR/$basefilename.gz"
 		file="$TMPDIR/$basefilename.gz"
 	elif [ "$COMPRESS" = "2" ]; then
+		require_executable xz
 		xz -c -- "$file" > "$TMPDIR/$basefilename.xz"
 		file="$TMPDIR/$basefilename.xz"
 	fi
@@ -147,8 +156,10 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 			$LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i" || EXITCODE=1
 		elif [ "$GET" ]; then
 			if [ "$COMPRESS" = "1" ]; then
+				require_executable zcat
 				$LIBDIR/fb-helper d "$PASTEBIN/$i" | zcat || EXITCODE=1
 			elif [ "$COMPRESS" = "2" ]; then
+				require_executable xzcat
 				$LIBDIR/fb-helper d "$PASTEBIN/$i" | xzcat || EXITCODE=1
 			else
 				$LIBDIR/fb-helper d "$PASTEBIN/$i" || EXITCODE=1
