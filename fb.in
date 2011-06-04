@@ -103,10 +103,10 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
     -v             show the client version
 
   Options:
-    These have no effect if used in conjunction with a switch
     -e <extension>   extension for default highlighting (e.g. "diff")
     -t               upload a tar file containing all files (and directories)
     -c               compress the file being uploaded with gz or xz if used 2 times
+                     When used in conjunction with -g this decompresses the download
 !
 }
 
@@ -146,7 +146,13 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 		if [ "$DELETE" ]; then
 			$LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i" || EXITCODE=1
 		elif [ "$GET" ]; then
-			$LIBDIR/fb-helper d "$PASTEBIN/$i" || EXITCODE=1
+			if [ "$COMPRESS" = "1" ]; then
+				$LIBDIR/fb-helper d "$PASTEBIN/$i" | zcat || EXITCODE=1
+			elif [ "$COMPRESS" = "2" ]; then
+				$LIBDIR/fb-helper d "$PASTEBIN/$i" | xzcat || EXITCODE=1
+			else
+				$LIBDIR/fb-helper d "$PASTEBIN/$i" || EXITCODE=1
+			fi
 		fi
 	done
 elif [ $# -eq 0 ]; then
