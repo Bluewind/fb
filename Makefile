@@ -1,4 +1,4 @@
-VERSION:=$(shell git describe --dirty | sed 's/^v//')
+VERSION:=$(shell git describe --dirty | sed 's/^v//; s/-/./g')
 MANDIR=/usr/share/man
 BINDIR=/usr/bin
 LIBDIR=/usr/lib
