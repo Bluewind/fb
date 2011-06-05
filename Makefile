@@ -3,7 +3,7 @@ MANDIR=/usr/share/man
 BINDIR=/usr/bin
 LIBDIR=/usr/lib
 CC=gcc
-CFLAGS=-O2 -std=c99 -Wall -Wextra -pedantic
+CFLAGS?=-O2 -std=c99 -Wall -Wextra -pedantic
 
 all: fb.1 fb fb-helper
 
