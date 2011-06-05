@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 
 	int ret = 0;
 
-	if(argc == 0)
+	if(argc == 1)
 		return 1;
 
 	mode = argv[1];
