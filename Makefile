@@ -9,17 +9,18 @@ all: fb.1 fb fb-helper
 
 fb: fb.in
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
-	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(LIBDIR)|' fb.in > fb
-	chmod 755 fb
+	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(LIBDIR)|' $< > $@
+	chmod 755 $@
 
-fb-helper.c: fb-helper.c.in
-	sed 's/@VERSION@/$(VERSION)/' fb-helper.c.in > fb-helper.c
+%:: %.in
+	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
+	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(LIBDIR)|' $< > $@
 
 fb-helper: fb-helper.c
-	$(CC) $(CFLAGS) -lcurl -lm -o fb-helper fb-helper.c
+	$(CC) $(CFLAGS) -lcurl -lm -o $@ $<
 
 fb.1: fb.pod
-	pod2man -c "" fb.pod fb.1
+	pod2man -c "" $< $@
 
 clean:
 	rm -f fb.1 fb fb-helper.c fb-helper
