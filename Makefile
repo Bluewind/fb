@@ -40,7 +40,7 @@ dist: all
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
 	mkdir -p dist/fb-$(VERSION)
 	cp -a fb-helper.c{,.in} fb{,.in} fb.pod fb.1 COPYING Makefile dist/fb-$(VERSION)
-	sed -i 's/^VERSION:=.*$$/VERSION:="'$(VERSION)'"/' dist/fb-$(VERSION)/Makefile
+	sed -i 's/^VERSION:=.*$$/VERSION:='$(VERSION)'/' dist/fb-$(VERSION)/Makefile
 	cd dist; tar -czf fb-$(VERSION).tar.gz fb-$(VERSION)
 
 version:
