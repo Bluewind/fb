@@ -65,6 +65,9 @@ If you want to be able to delete files, you have to add the following line to ~/
    If used in conjunction with the -g switch this decompresses the download
    before it's output to stdout.
 
+-C
+   Encrypt the file(s) before uploading using gpg.
+
 =head1 EXAMPLES
 
 fb -tc <folder> <file>
