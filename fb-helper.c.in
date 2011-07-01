@@ -1,7 +1,11 @@
 /*
  * Description: This is intended as a helper script for fb only.
  *
- * Synopsis: ./fb-upload <pastebin URL> <file>
+ * Synopsis: ./fb-upload <action> <URL> <file>
+ *
+ * action can be:
+ * d = download <URL>
+ * u = upload <file> to <URL>
  *
  * Author: Florian "Bluewind" Pritz <flo@xssn.at>
  *
