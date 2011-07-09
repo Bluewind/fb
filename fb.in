@@ -172,7 +172,12 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 	for i in "$@"; do
 		i=$(id_from_arg "$i")
 		if [ "$DELETE" ]; then
-			$LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i" || EXITCODE=1
+			if $LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i"; then
+			 sed -i "/$i/d" $FBHIST
+			else
+				EXITCODE=1
+			fi
+
 		elif [ "$GET" ]; then
 			if [ "$COMPRESS" = "1" ]; then
 				require_executable zcat
