@@ -20,7 +20,9 @@ TAR=
 COMPRESS=0
 TAREXT=".tar"
 TAROPTS=""
+DISPLAYHISTORY=
 PASTEBIN="http://paste.xinu.at"
+FBHIST="$HOME/.fb-client.hist"
 WARNSIZE=10485760
 USERAGENT="fb-client/$VERSION"
 CLIPBOARD=""
@@ -91,6 +93,8 @@ do_upload() {
 	URL=`tail -1 $TMPFILE`"$EXTENSION"
 	echo $URL
 	CLIPBOARD="$CLIPBOARD $URL"
+	touch "$FBHIST"
+	echo "$URL :: $basefilename :: `date +%s` :: `stat -c %s -- "$file"`" >> "$FBHIST"
 }
 
 read_stdin() {
@@ -121,6 +125,7 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
     -g <ID(s)>     download the IDs and output on stdout (use with care!)
     -h             this help
     -v             show the client version
+    -H             display an upload history
 
   Options:
     -e <extension>   extension for default highlighting (e.g. "diff")
@@ -131,7 +136,7 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
 !
 }
 
-while getopts "e:gdhtcCv" OPTION; do
+while getopts "e:gdhHtcCv" OPTION; do
 	case $OPTION in
 		e) EXTENSION="$OPTARG";;
 		g) GET=1;;
@@ -147,6 +152,7 @@ while getopts "e:gdhtcCv" OPTION; do
 			 ;;
 		t) TAR=1;;
 		d) DELETE=1;;
+		H) DISPLAYHISTORY=1;;
 		v) echo "$VERSION"; exit 0;;
 		h|\?) help; exit 0;;
 	esac
@@ -179,6 +185,17 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 			fi
 		fi
 	done
+elif [ "$DISPLAYHISTORY" ]; then
+	maxage=`echo 10*24*60*60 | bc`
+	minsize=`echo 10*1024| bc`
+
+	now=`date +%s`
+	oldest_time=`echo "$now - $maxage" | bc`
+
+	awk -F" :: " '
+		($4 < '$minsize' || $3 < '$oldest_time' ) { print $1" - "$2}
+	' $FBHIST
+
 elif [ $# -eq 0 ]; then
 	if [ "$TAR" ]; then
 		echo "Error: -t is not supported when operating on stdin" >&2
