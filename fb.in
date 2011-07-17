@@ -92,9 +92,11 @@ do_upload() {
 	sed '$d' $TMPFILE >&2
 	URL=`tail -1 $TMPFILE`"$EXTENSION"
 	echo $URL
-	CLIPBOARD="$CLIPBOARD $URL"
-	touch "$FBHIST"
-	echo "$URL :: $basefilename :: `date +%s` :: `stat -c %s -- "$file"`" >> "$FBHIST"
+	if echo $URL | grep -qE "^https?://"; then
+		CLIPBOARD="$CLIPBOARD $URL"
+		touch "$FBHIST"
+		echo "$URL :: $basefilename :: `date +%s` :: `stat -c %s -- "$file"`" >> "$FBHIST"
+	fi
 }
 
 read_stdin() {
