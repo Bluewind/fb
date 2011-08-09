@@ -105,16 +105,16 @@ int progress_callback(void *cb_data,
 
 	gettimeofday(&now, NULL);
 
-	/* only refresh once a second */
-	if (data->last.tv_sec == now.tv_sec)
-		return 0;
-
 	/* calculate time between this and the last call in seconds */
 	timeSpent =
 		(double)(now.tv_sec - data->last.tv_sec) +
 		(double)(now.tv_usec - data->last.tv_usec) / 1000000.0;
 
 	format_bytes((ulnow - data->ullast) / timeSpent, (char *)&speed);
+	/* don't refresh too often, catch if time went backwards */
+	if (timeSpent < 0.2 && timeSpent > -1.0)
+		return 0;
+
 	format_bytes(ulnow, (char *)&total);
 
 	/* print the progress */
