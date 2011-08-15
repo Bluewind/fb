@@ -200,7 +200,7 @@ elif [ "$DISPLAYHISTORY" ]; then
 	oldest_time=`echo "$now - $maxage" | bc`
 
 	awk -F" :: " '
-		($4 < '$minsize' || $3 < '$oldest_time' ) { print $1" - "$2}
+		($4 < '$minsize' || $3 < '$oldest_time' ) { print $1" - \""$2"\" on "strftime("%a %b %d %H:%M:%S %Z %Y", $3)}
 	' $FBHIST
 
 elif [ $# -eq 0 ]; then
