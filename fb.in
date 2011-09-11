@@ -15,7 +15,6 @@ VERSION="@VERSION@"
 DELETE=
 EXTENSION=""
 GET=
-ENCRYPT=
 TAR=
 COMPRESS=0
 TAREXT=".tar"
@@ -62,16 +61,6 @@ do_upload() {
 		require_executable xz
 		xz -c -- "$file" > "$TMPDIR/$basefilename.xz"
 		file="$TMPDIR/$basefilename.xz"
-	fi
-
-	basefilename="`basename -- "$file"`"
-
-	if [ "$ENCRYPT" = "1" ]; then
-		if ! gpg -o "$TMPDIR/$basefilename.gpg" -e "$file"; then
-			EXITCODE=1
-			return 1
-		fi
-		file="$TMPDIR/$basefilename.gpg"
 	fi
 
 	TMPFILE=`mktemp "$TMPDIR/data.XXXXXX"`
@@ -131,15 +120,13 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
     -t               upload a tar file containing all files (and directories)
     -c               compress the file being uploaded with gz or xz if used 2 times
                      When used in conjunction with -g this decompresses the download
-    -C               encrypt the file being uploaded
 !
 }
 
-while getopts "e:gdhHtcCv" OPTION; do
+while getopts "e:gdhHtcv" OPTION; do
 	case $OPTION in
 		e) EXTENSION="$OPTARG";;
 		g) GET=1;;
-		C) ENCRYPT=1; require_executable gpg;;
 		c) COMPRESS=`expr $COMPRESS + 1`
 			 if [ "$COMPRESS" == "1" ]; then
 				 TAROPTS="-z"
