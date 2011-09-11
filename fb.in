@@ -22,7 +22,6 @@ TAREXT=".tar"
 TAROPTS=""
 DISPLAYHISTORY=
 PASTEBIN="http://paste.xinu.at"
-FBHIST="$HOME/.fb-client.hist"
 WARNSIZE=10485760
 USERAGENT="fb-client/$VERSION"
 CLIPBOARD=""
@@ -94,8 +93,6 @@ do_upload() {
 	echo $URL
 	if echo $URL | grep -qE "^https?://"; then
 		CLIPBOARD="$CLIPBOARD $URL"
-		touch "$FBHIST"
-		echo "$URL :: $basefilename :: `date +%s` :: `stat -c %s -- "$file"`" >> "$FBHIST"
 	fi
 }
 
@@ -174,9 +171,7 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 	for i in "$@"; do
 		i=$(id_from_arg "$i")
 		if [ "$DELETE" ]; then
-			if $LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i"; then
-			 sed -i "/$i/d" $FBHIST
-			else
+			if ! $LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i"; then
 				EXITCODE=1
 			fi
 
@@ -193,15 +188,7 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 		fi
 	done
 elif [ "$DISPLAYHISTORY" ]; then
-	maxage=`echo 10*24*60*60 | bc`
-	minsize=`echo 10*1024| bc`
-
-	now=`date +%s`
-	oldest_time=`echo "$now - $maxage" | bc`
-
-	awk -F" :: " '
-		($4 < '$minsize' || $3 < '$oldest_time' ) { print $1" - \""$2"\" on "strftime("%a %b %d %H:%M:%S %Z %Y", $3)}
-	' $FBHIST
+	$LIBDIR/fb-helper d "$PASTEBIN/file/upload_history" || EXITCODE=1
 
 elif [ $# -eq 0 ]; then
 	if [ "$TAR" ]; then
