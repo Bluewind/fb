@@ -40,7 +40,6 @@ do_upload() {
 
 	if [ ! -e "$file" ]; then
 		echo "Error: File \"$file\" doesn't exist" >&2
-		EXITCODE=1
 		return 1
 	fi
 
@@ -48,20 +47,20 @@ do_upload() {
 		cd "$basedirname"
 		if [ "$COMPRESS" = "1" ]; then
 			file="$TMPDIR/$basefilename.tar.gz"
-			tar -cf - -- "$basefilename" | gzip -c > "$file"
+			tar -cf - -- "$basefilename" | gzip -c > "$file" || return 1
 		elif [ "$COMPRESS" = "2" ]; then
 			file="$TMPDIR/$basefilename.tar.xz"
-			tar -cf - -- "$basefilename" | xz -c > "$file"
+			tar -cf - -- "$basefilename" | xz -c > "$file" || return 1
 		else
 			file="$TMPDIR/$basefilename.tar"
-			tar -cf "$file" -- "$basefilename"
+			tar -cf "$file" -- "$basefilename" || return 1
 		fi
 	else
 		if [ "$COMPRESS" = "1" ]; then
-			gzip -c -- "$file" > "$TMPDIR/$basefilename.gz"
+			gzip -c -- "$file" > "$TMPDIR/$basefilename.gz" || return 1
 			file="$TMPDIR/$basefilename.gz"
 		elif [ "$COMPRESS" = "2" ]; then
-			xz -c -- "$file" > "$TMPDIR/$basefilename.xz"
+			xz -c -- "$file" > "$TMPDIR/$basefilename.xz" || return 1
 			file="$TMPDIR/$basefilename.xz"
 		fi
 	fi
@@ -71,15 +70,12 @@ do_upload() {
 		WARNSIZE=`$LIBDIR/fb-helper d "$PASTEBIN/file/get_max_size"`
 		if [ `stat -c %s -- "$file"` -gt "$WARNSIZE" ]; then
 			echo "Warning: Your upload is too big and would be rejected. Maximum size is: $WARNSIZE bytes. Skipping..." >&2
-			EXITCODE=1
 			return 1
 		fi
 	fi
 
-	if ! $LIBDIR/fb-helper u "$PASTEBIN/file/do_upload" "$file" > $TMPFILE; then
-		EXITCODE=1
-		return 1
-	fi
+	$LIBDIR/fb-helper u "$PASTEBIN/file/do_upload" "$file" > $TMPFILE || return 1
+
 	sed '$d' $TMPFILE >&2
 	URL=`tail -1 $TMPFILE`"$EXTENSION"
 	echo $URL
@@ -158,9 +154,7 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 	for i in "$@"; do
 		i=$(id_from_arg "$i")
 		if [ "$DELETE" ]; then
-			if ! $LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i"; then
-				EXITCODE=1
-			fi
+			$LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i" || EXITCODE=1
 
 		elif [ "$GET" ]; then
 			if [ "$COMPRESS" = "1" ]; then
@@ -181,7 +175,7 @@ elif [ $# -eq 0 ]; then
 		exit 1
 	fi
 	read_stdin "$TMPDIR/stdin"
-	do_upload "$TMPDIR/stdin"
+	do_upload "$TMPDIR/stdin" || EXITCODE=1
 else
 	if [ "$TAR" ]; then
 		if [ "$COMPRESS" = "1" ]; then
@@ -195,7 +189,7 @@ else
 			tar -cf "$file" -- "$@"
 		fi
 		COMPRESS=0
-		do_upload "$file"
+		do_upload "$file" || EXITCODE=1
 		break
 	else
 		for i in "$@"; do
@@ -206,10 +200,14 @@ else
 					continue
 				fi
 				for f in *; do
-					do_upload "$f" && rm -f -- "$f"
+					if do_upload "$f"; then
+						rm -f -- "$f"
+					else
+						EXITCODE=1
+					fi
 				done
 			else
-				do_upload "$i"
+				do_upload "$i" || EXITCODE=1
 			fi
 		done
 	fi

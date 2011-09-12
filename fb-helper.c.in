@@ -1,7 +1,7 @@
 /*
  * Description: This is intended as a helper script for fb only.
  *
- * Synopsis: ./fb-upload <action> <URL> <file>
+ * Synopsis: ./fb-helper <action> <URL> <file>
  *
  * action can be:
  * d = download <URL>
@@ -182,7 +182,8 @@ int main(int argc, char *argv[])
 
 	if (file) {
 		if(stat(file, &statbuf) == -1) {
-			perror("fb-upload");
+			fprintf(stderr, "fb-helper: %s: ", file);
+			perror(NULL);
 			return 1;
 		}
 
