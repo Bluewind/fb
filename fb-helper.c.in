@@ -38,7 +38,6 @@ int load_file(const char *fn, char **data, size_t *data_size)
 {
 	FILE *fp;
 	size_t buf_size = 1024*1024; /* use 1MiB chunks */
-	int size = 0;
 
 	fp = fopen(fn, "rb");
 	if (fp == NULL) {
@@ -53,8 +52,7 @@ int load_file(const char *fn, char **data, size_t *data_size)
 			perror("load_file");
 			return 1;
 		}
-		size = fread(*data + *data_size, sizeof(char), buf_size, fp);
-		*data_size += size;
+		*data_size += fread(*data + *data_size, sizeof(char), buf_size, fp);
 	}
 
 	fclose(fp);
