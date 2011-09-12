@@ -17,8 +17,6 @@ EXTENSION=""
 GET=
 TAR=
 COMPRESS=0
-TAREXT=".tar"
-TAROPTS=""
 DISPLAYHISTORY=
 PASTEBIN="http://paste.xinu.at"
 WARNSIZE=10485760
@@ -48,19 +46,24 @@ do_upload() {
 
 	if [ -d "$file" ]; then
 		cd "$basedirname"
-		tar $TAROPTS -cf "$TMPDIR/$basefilename$TAREXT" -- "$basefilename"
-		COMPRESS=0
-		file="$TMPDIR/$basefilename$TAREXT"
-	fi
-
-	if [ "$COMPRESS" = "1" ]; then
-		require_executable gzip
-		gzip -c -- "$file" > "$TMPDIR/$basefilename.gz"
-		file="$TMPDIR/$basefilename.gz"
-	elif [ "$COMPRESS" = "2" ]; then
-		require_executable xz
-		xz -c -- "$file" > "$TMPDIR/$basefilename.xz"
-		file="$TMPDIR/$basefilename.xz"
+		if [ "$COMPRESS" = "1" ]; then
+			file="$TMPDIR/$basefilename.tar.gz"
+			tar -cf - -- "$basefilename" | gzip -c > "$file"
+		elif [ "$COMPRESS" = "2" ]; then
+			file="$TMPDIR/$basefilename.tar.xz"
+			tar -cf - -- "$basefilename" | xz -c > "$file"
+		else
+			file="$TMPDIR/$basefilename.tar"
+			tar -cf "$file" -- "$basefilename"
+		fi
+	else
+		if [ "$COMPRESS" = "1" ]; then
+			gzip -c -- "$file" > "$TMPDIR/$basefilename.gz"
+			file="$TMPDIR/$basefilename.gz"
+		elif [ "$COMPRESS" = "2" ]; then
+			xz -c -- "$file" > "$TMPDIR/$basefilename.xz"
+			file="$TMPDIR/$basefilename.xz"
+		fi
 	fi
 
 	TMPFILE=`mktemp "$TMPDIR/data.XXXXXX"`
@@ -127,15 +130,7 @@ while getopts "e:gdhHtcv" OPTION; do
 	case $OPTION in
 		e) EXTENSION="$OPTARG";;
 		g) GET=1;;
-		c) COMPRESS=`expr $COMPRESS + 1`
-			 if [ "$COMPRESS" == "1" ]; then
-				 TAROPTS="-z"
-				 TAREXT=".tar.gz"
-			 elif [ "$COMPRESS" == "2" ]; then
-				 TAROPTS="-J"
-				 TAREXT=".tar.xz"
-			 fi
-			 ;;
+		c) COMPRESS=`expr $COMPRESS + 1`;;
 		t) TAR=1;;
 		d) DELETE=1;;
 		H) DISPLAYHISTORY=1;;
@@ -146,6 +141,11 @@ done
 
 shift `expr $OPTIND - 1`
 
+if [ "$COMPRESS" = "1" ]; then
+	require_executable gzip
+elif [ "$COMPRESS" = "2" ]; then
+	require_executable xz
+fi
 
 TMPDIR="`mktemp -d "/tmp/fb.XXXXXX"`"
 trap "rm -rf '${TMPDIR}'" EXIT TERM
@@ -164,11 +164,9 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 
 		elif [ "$GET" ]; then
 			if [ "$COMPRESS" = "1" ]; then
-				require_executable zcat
-				$LIBDIR/fb-helper d "$PASTEBIN/$i" | zcat || EXITCODE=1
+				$LIBDIR/fb-helper d "$PASTEBIN/$i" | gzip -cd || EXITCODE=1
 			elif [ "$COMPRESS" = "2" ]; then
-				require_executable xzcat
-				$LIBDIR/fb-helper d "$PASTEBIN/$i" | xzcat || EXITCODE=1
+				$LIBDIR/fb-helper d "$PASTEBIN/$i" | xz -cd || EXITCODE=1
 			else
 				$LIBDIR/fb-helper d "$PASTEBIN/$i" || EXITCODE=1
 			fi
@@ -186,9 +184,18 @@ elif [ $# -eq 0 ]; then
 	do_upload "$TMPDIR/stdin"
 else
 	if [ "$TAR" ]; then
-		tar $TAROPTS -cf "$TMPDIR/upload$TAREXT" -- "$@"
+		if [ "$COMPRESS" = "1" ]; then
+			file="$TMPDIR/upload.tar.gz"
+			tar -cf - -- "$@" | gzip -c > "$file"
+		elif [ "$COMPRESS" = "2" ]; then
+			file="$TMPDIR/upload.tar.xz"
+			tar -cf - -- "$@" | xz -c > "$file"
+		else
+			file="$TMPDIR/upload.tar"
+			tar -cf "$file" -- "$@"
+		fi
 		COMPRESS=0
-		do_upload "$TMPDIR/upload$TAREXT"
+		do_upload "$file"
 		break
 	else
 		for i in "$@"; do
