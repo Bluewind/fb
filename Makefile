@@ -17,7 +17,7 @@ fb: fb.in
 	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(LIBDIR)|' $< > $@
 
 fb-helper: fb-helper.c
-	$(CC) $(CFLAGS) -lcurl -lm -o $@ $<
+	$(CC) $(CFLAGS) -lcurl -o $@ $<
 
 fb.1: fb.pod
 	pod2man -c "" $< $@
