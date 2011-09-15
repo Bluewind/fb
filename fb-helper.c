@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	CURL *curl;
 	CURLcode res;
 
-	char *userAgent = "fb-client/@VERSION@";
+	char *userAgent = "fb-client/"VERSION;
 
 	struct progressData cb_data = {
 		.starttime = {.tv_sec = 0, .tv_usec = 0},
