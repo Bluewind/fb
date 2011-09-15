@@ -1,0 +1,148 @@
+.\" Copyright (c) 2010 Florian Pritz, flo at xssn.at
+.\"               2011 Moritz Wilhelmy, mw at wzff.de
+.\"
+.\"            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+.\"                    Version 2, December 2004
+.\"
+.\"  14 rue de Plaisance, 75014 Paris, France
+.\" Everyone is permitted to copy and distribute verbatim or modified
+.\" copies of this license document, and changing it is allowed as long
+.\" as the name is changed.
+.\"
+.\"            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+.\"   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+.\"
+.\"  0. You just DO WHAT THE FUCK YOU WANT TO.
+.\"
+.Dd September 12, 2011
+.Dt FB 1
+.Os
+.Sh NAME
+.Nm fb 
+.Nd a shell-script client for http://paste.xinu.at
+.Sh SYNOPSIS
+.Nm
+.Ar file/directory ...
+.Nm
+.Op Fl dg
+.Ar ID/URL ...
+.Nm
+.Op Fl hv
+.Sh DESCRIPTION
+.Nm
+is a client to http://paste.xinu.at which allows the user to easily upload,
+delete or download files.
+By default, files will be uploaded as-is and a link to the file will be printed
+to stdout after each upload.
+.Pp
+Before terminating,
+.Nm
+will try to copy all links into the X clipboard if
+.Xr xclip 1
+is installed.
+Folders will be packed into a tarball with
+.Xr tar 1 and the resulting
+.Pa upload.tar
+file will be uploaded.
+If no arguments are given, data will be read from stdin into a temporary file
+that will be uploaded as soon as EOF is received..
+If the file being uploaded is bigger than 10MB
+.Nm
+will query the server for the maximum upload size and abort the upload if the
+file would be rejected.
+.Pp
+Following options are supported:
+.Bl -tag -width Ds
+.It Fl d
+Delete the IDs. You can no longer upload files in this mode. If the argument is a URL,
+.Nm
+will try to extract the ID.
+.It Fl g
+Download the IDs and output on stdout. Please take care when using this, as
+binary data may cause unexpected results when being output directly to a
+terminal. You can no longer upload files in this mode. If the argument is a
+URL, 
+.Nm
+will try to extract the ID.
+.It Fl h
+Display a short help message.
+.It Fl v
+Display the client version.
+.It Fl e Ar extension
+Change the extension used for highlighting. You can also do this if you
+have already uploaded the file by appending the extension to the URL.
+http://paste.xinu.at/<ID>/bash will change the syntax highlighting to bash.
+.It Fl t
+Upload a tar file containing all files and directories specified on the
+command line.
+.It Fl c
+Compress the files to be uploaded using
+.Xr gzip 1 .
+This affects all files including piped content and folders.
+If specified twice, 
+.Xr xz 1
+will be used rather than gzip.
+.El
+.Pp
+If you want to be able to delete files, you have to add the following lines to
+.Pa ~/.netrc :
+.Pp
+.Bd -literal -offset indent
+machine paste.xinu.at
+  password <your_secret_password>
+.Ed
+.Sh ENVIRONMENT
+Some options can be changed by modifying environment variables:
+.Bl -tag -width XZ_OPTS
+.It Ev GZIP 
+Assigning GZIP will make the gzip-program treat it's value as if they had been
+appended to the command line.
+.It Ev XZ_OPTS
+The XZ_OPTS environment variable can be used in order to pass additional
+options to xz, in case xz is used for compression.
+.It TMPDIR
+Setting TMPDIR to some directory where 
+.Nm
+create temporary files inside this directory rather than /tmp, if the
+underlying mktemp program supports it.
+.Sh EXAMPLES
+.Bl -tag
+.It Nm Fl tc Ar folder file
+This will create a .tar archive containing the folder and the file and compress
+it using gzip and upload one archive.
+.It Nm Fl c Ar folder file
+This will create a .tar archive containing only the folder. Both (folder and
+file) will be compressed using gzip and uploaded independently.
+.It Nm Fl cc Ar folder
+This will create a .tar archive containing only the folder and compress it using xz.
+.It Ic make \&|\&& Nm
+This will upload the output of make (stdout and stderr) in csh and similar shells.
+.El
+.Sh SEE ALSO
+.Xr curl 1 ,
+.Xr gzip 1 ,
+.Xr mktemp 1 ,
+.Xr tar 1 ,
+.Xr xz 1 ,
+.Xr xclip 1
+.Sh AUTHORS
+.An -nosplit
+.Nm
+was written by
+.Bl -bullet -compact
+.It
+.\" mdoc has clever spam protection ;)
+.An Florian Pritz Aq fl\&o@xssn.at
+.It
+.An Moritz Wilhelmy Aq mor\&itz@wzff.de
+.El
+and may be copied under the terms of the WTFPL.
+.Sh BUGS
+curl has a nasty comma expansion bug.
+When filenames containing a comma are being uploaded, The main branch tries to
+address this problem by providing a binary helper that links against libcurl in
+order to work around this bug.
+The legacy branch, from which this version of fb was obtained is supposed to
+remain a plain shell-script client, focusing on fixing all fixable bugs
+(i.e. not the curl one) and making it work on all POSIX platforms by removing
+code that only works with GNU bash.

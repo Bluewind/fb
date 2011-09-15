@@ -8,9 +8,9 @@ CFLAGS?=-O2 -std=c99 -Wall -Wextra -pedantic
 LIBCURL:=$(shell pkg-config --silence-errors --libs --cflags libcurl)
 
 ifdef LIBCURL
-all: fb.1 fb fb-helper
+all: fb fb-helper
 else
-all: fb.1 fb
+all: fb
 endif
 
 fb: fb.in
@@ -21,14 +21,11 @@ fb: fb.in
 fb-helper: fb-helper.c
 	$(CC) $(CFLAGS) $(LIBCURL) -DVERSION=\"$(VERSION)\" -o $@ $<
 
-fb.1: fb.pod
-	pod2man -c "" $< $@
-
 clean:
-	rm -f fb.1 fb fb-helper
+	rm -f fb fb-helper
 	rm -rf dist
 
-install: all
+install:
 	install -dm755 $(DESTDIR)$(BINDIR)
 	install -m755 fb $(DESTDIR)$(BINDIR)/fb
 ifdef LIBCURL
@@ -46,7 +43,7 @@ uninstall:
 dist: all
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
 	mkdir -p dist/fb-$(VERSION)
-	cp -a fb-helper.c fb{,.in} fb.pod fb.1 COPYING Makefile dist/fb-$(VERSION)
+	cp -a fb-helper.c fb{,.in} fb.1 COPYING Makefile dist/fb-$(VERSION)
 	sed -i 's/^VERSION:=.*$$/VERSION:='$(VERSION)'/' dist/fb-$(VERSION)/Makefile
 	cd dist; tar -czf fb-$(VERSION).tar.gz fb-$(VERSION)
 
