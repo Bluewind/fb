@@ -83,10 +83,11 @@ void format_bytes(double bytes, char *buf)
 }
 
 
-int progress_callback(void *cb_data,
+int progress_callback(
+	void *cb_data,
 	double dltotal, double dlnow,
-	double ultotal, double ulnow)
-{
+	double ultotal, double ulnow
+){
 	struct timeval now;
 	struct progressData *data = (struct progressData *)cb_data;
 	double timeSpent = 0;
@@ -122,7 +123,8 @@ int progress_callback(void *cb_data,
 		"\r%s/s uploaded: %.1f%% = %s",
 		speed, /* upload speed */
 		ulnow * 100.0 / ultotal, /* percent uploaded */
-		total); /* total data uploaded */
+		total /* total data uploaded */
+		);
 
 	/* pad the string if the last one was longer to remove left over characters */
 	if (data->lastStringLength > printed)
@@ -193,16 +195,17 @@ int main(int argc, char *argv[])
 			if (load_file(file, &data, &data_size) != 0) {
 				return 1;
 			}
+
 			forms[0].option = CURLFORM_BUFFER;
-			forms[0].value = basename(file);
+			forms[0].value  = basename(file);
 			forms[1].option = CURLFORM_BUFFERPTR;
-			forms[1].value = data;
+			forms[1].value  = data;
 			forms[2].option = CURLFORM_BUFFERLENGTH;
-			forms[2].value = (char *)data_size;
+			forms[2].value  = (char *)data_size;
 			forms[3].option = CURLFORM_END;
 		} else {
 			forms[0].option = CURLFORM_FILE;
-			forms[0].value = file;
+			forms[0].value  = file;
 			forms[1].option = CURLFORM_END;
 		}
 
@@ -215,25 +218,33 @@ int main(int argc, char *argv[])
 	}
 
 	curl = curl_easy_init();
+
 	/* initialize custom header list (stating that Expect: 100-continue is not
 		 wanted */
 	headerlist = curl_slist_append(headerlist, buf);
+
 	if(curl) {
-		/* what URL that receives this POST */
 		curl_easy_setopt(curl, CURLOPT_URL, url);
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 		curl_easy_setopt(curl, CURLOPT_NETRC, CURL_NETRC_OPTIONAL);
+
+		/* only display progress bar if uploading */
 		if (file) {
 			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
 			curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &cb_data);
 			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
 		}
+
 		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+
 		if (formpost)
 			curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+
 		curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, (long)1);
 		curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, (long)30);
+
 		gettimeofday(&cb_data.starttime, NULL);
+
 		res = curl_easy_perform(curl);
 
 		if (res != 0) {
@@ -243,8 +254,10 @@ int main(int argc, char *argv[])
 
 		/* cleanup */
 		curl_easy_cleanup(curl);
+
 		if (formpost)
 			curl_formfree(formpost);
+
 		curl_slist_free_all (headerlist);
 		curl_global_cleanup();
 		free(data);
