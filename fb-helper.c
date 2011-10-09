@@ -143,6 +143,12 @@ int main(int argc, char *argv[])
 	CURL *curl;
 	CURLcode res;
 
+	struct curl_httppost *formpost = NULL;
+	struct curl_httppost *lastptr = NULL;
+	struct curl_slist *headerlist = NULL;
+	static const char buf[] = "Expect:";
+	struct curl_forms forms[4];
+
 	char *userAgent = "fb-client/"VERSION;
 
 	struct progressData cb_data = {
@@ -151,22 +157,15 @@ int main(int argc, char *argv[])
 		.ullast = 0.0,
 		.lastStringLength = 0
 	};
-	struct stat statbuf;
-
-	struct curl_httppost *formpost=NULL;
-	struct curl_httppost *lastptr=NULL;
-	struct curl_slist *headerlist=NULL;
-	static const char buf[] = "Expect:";
-	struct curl_forms forms[4];
 
 	char *mode = NULL;
 	char *data = NULL;
 	char *url = NULL;
 	char *file = NULL;
-	size_t data_size = 0;
 
 	int ret = 0;
 
+	/* process arguments */
 	if(argc == 1)
 		return 1;
 
@@ -177,12 +176,22 @@ int main(int argc, char *argv[])
 
 	url = argv[2];
 
+	/* initialize curl */
 	if (curl_global_init(CURL_GLOBAL_ALL) != 0) {
 		fprintf(stderr, "Error initializing curl");
 		return 10;
 	}
 
+	curl = curl_easy_init();
+	if(!curl) {
+		fprintf(stderr, "Error initializing curl");
+		return 1;
+	}
+
+	/* if we have a file to upload, add it as a POST request */
 	if (file) {
+		struct stat statbuf;
+
 		if(stat(file, &statbuf) == -1) {
 			fprintf(stderr, "fb-helper: %s: ", file);
 			perror(NULL);
@@ -192,6 +201,8 @@ int main(int argc, char *argv[])
 		/* load files with 0 size (/proc files for example) into memory so we can
 		 * determine their real length */
 		if (statbuf.st_size == 0) {
+			size_t data_size = 0;
+
 			if (load_file(file, &data, &data_size) != 0) {
 				return 1;
 			}
@@ -215,55 +226,51 @@ int main(int argc, char *argv[])
 			 CURLFORM_COPYNAME, "file",
 			 CURLFORM_ARRAY, forms,
 			 CURLFORM_END);
-	}
+		curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
 
-	curl = curl_easy_init();
+		/* display progress bar */
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &cb_data);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+	}
 
 	/* initialize custom header list (stating that Expect: 100-continue is not
 		 wanted */
 	headerlist = curl_slist_append(headerlist, buf);
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
-	if(curl) {
-		curl_easy_setopt(curl, CURLOPT_URL, url);
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-		curl_easy_setopt(curl, CURLOPT_NETRC, CURL_NETRC_OPTIONAL);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
 
-		/* only display progress bar if uploading */
-		if (file) {
-			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-			curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &cb_data);
-			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
-		}
+	/* use .netrc settings for authentication if available */
+	curl_easy_setopt(curl, CURLOPT_NETRC, CURL_NETRC_OPTIONAL);
 
-		curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
 
-		if (formpost)
-			curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+	/* bail if the upload stalls for 30 seconds */
+	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, (long)1);
+	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, (long)30);
 
-		curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, (long)1);
-		curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, (long)30);
+	/* save time for progress calculation */
+	gettimeofday(&cb_data.starttime, NULL);
 
-		gettimeofday(&cb_data.starttime, NULL);
+	/* run the request */
+	res = curl_easy_perform(curl);
 
-		res = curl_easy_perform(curl);
-
-		if (res != 0) {
-			fprintf(stderr, "\n%s\n", curl_easy_strerror(res));
-			ret = 1;
-		}
-
-		/* cleanup */
-		curl_easy_cleanup(curl);
-
-		if (formpost)
-			curl_formfree(formpost);
-
-		curl_slist_free_all (headerlist);
-		curl_global_cleanup();
-		free(data);
-	} else {
-		fprintf(stderr, "Error initializing curl");
+	/* handle curl errors */
+	if (res != 0) {
+		fprintf(stderr, "\n%s\n", curl_easy_strerror(res));
 		ret = 1;
 	}
+
+	/* cleanup */
+	curl_easy_cleanup(curl);
+
+	if (formpost)
+		curl_formfree(formpost);
+
+	curl_slist_free_all (headerlist);
+	curl_global_cleanup();
+	free(data);
+
 	return ret;
 }
