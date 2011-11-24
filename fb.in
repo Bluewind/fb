@@ -199,11 +199,10 @@ else
 					continue
 				fi
 				for f in *; do
-					if do_upload "$f"; then
-						rm -f -- "$f"
-					else
+					if ! do_upload "$f"; then
 						EXITCODE=1
 					fi
+					rm -f -- "$f"
 				done
 			else
 				do_upload "$i" || EXITCODE=1
