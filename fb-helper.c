@@ -24,6 +24,7 @@
 #include <curl/easy.h>
 
 #define FORMAT_ARRAY_SIZE 5
+#define FORMAT_BYTES_BUFFER 64
 
 /* struct which holds the persistent data for progress_callback */
 struct progressData {
@@ -77,9 +78,9 @@ void format_bytes(double bytes, char *buf)
 
 	// don't print decimals for bytes
 	if (suffix_pos != 0)
-		snprintf(buf, 64, "%.2f%s", size, suffix[suffix_pos]);
+		snprintf(buf, FORMAT_BYTES_BUFFER, "%.2f%s", size, suffix[suffix_pos]);
 	else
-		snprintf(buf, 64, "%.0f%s", size, suffix[suffix_pos]);
+		snprintf(buf, FORMAT_BYTES_BUFFER, "%.0f%s", size, suffix[suffix_pos]);
 }
 
 
@@ -92,8 +93,8 @@ int progress_callback(
 	struct progressData *data = (struct progressData *)cb_data;
 	double timeSpent = 0;
 	int printed = 0;
-	char speed[64];
-	char total[64];
+	char speed[FORMAT_BYTES_BUFFER];
+	char total[FORMAT_BYTES_BUFFER];
 
 	if (0 == ulnow)
 		return 0;
