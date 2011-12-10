@@ -110,7 +110,7 @@ int progress_callback(
 	/* calculate time between this and the last call in seconds */
 	timeSpent =
 		(double)(now.tv_sec - data->last.tv_sec) +
-		(double)(now.tv_usec - data->last.tv_usec) / 1000000.0;
+		(double)(now.tv_usec - data->last.tv_usec) / 1E6;
 
 	format_bytes((ulnow - data->ullast) / timeSpent, (char *)&speed);
 	/* don't refresh too often, catch if time went backwards */
