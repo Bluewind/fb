@@ -2,8 +2,9 @@ VERSION:=$(shell git describe --dirty | sed 's/^v//; s/-/./g')
 MANDIR=/usr/share/man
 BINDIR=/usr/bin
 LIBDIR=/usr/lib
-CC=gcc
+CC=cc
 CFLAGS?=-O2 -std=c99 -Wall -Wextra -pedantic
+LIBCURL:=$(shell pkg-config --silence-errors --libs --cflags libcurl)
 
 all: fb.1 fb fb-helper
 
@@ -13,7 +14,7 @@ fb: fb.in
 	chmod 755 $@
 
 fb-helper: fb-helper.c
-	$(CC) $(CFLAGS) -lcurl -DVERSION=\"$(VERSION)\" -o $@ $<
+	$(CC) $(CFLAGS) $(LIBCURL) -DVERSION=\"$(VERSION)\" -o $@ $<
 
 fb.1: fb.pod
 	pod2man -c "" $< $@
