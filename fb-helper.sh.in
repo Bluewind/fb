@@ -1,0 +1,20 @@
+#!/bin/sh
+
+mode=$1
+url=$2
+file=$3
+
+USERAGENT="fb-client/shell-@VERSION@"
+CURLOPTS="-n -L -A $USERAGENT"
+
+if [ "$mode" = "u" ]; then
+	basefilename=`basename -- "$file"`
+	if [ `stat -c %s -- "$file"` -eq "0" ] || echo "$basefilename" | grep -F -q ","; then
+		basefilename=`echo "$basefilename" | tr -d ,`
+		curl $CURLOPTS -F "file=@-;filename=$basefilename" "$url" < "$file" -o /dev/stdout
+	else
+		curl $CURLOPTS -F "file=@$file" "$url" -o /dev/stdout
+	fi
+else
+	curl $CURLOPTS "$url"
+fi

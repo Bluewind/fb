@@ -13,8 +13,16 @@ fb: fb.in
 	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(LIBDIR)|' $< > $@
 	chmod 755 $@
 
+ifdef LIBCURL
 fb-helper: fb-helper.c
 	$(CC) $(CFLAGS) $(LIBCURL) -DVERSION=\"$(VERSION)\" -o $@ $<
+else
+fb-helper: fb-helper.sh.in
+	@echo "libcurl not found. using shell helper..."
+	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
+	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(LIBDIR)|' $< > $@
+	chmod 755 $@
+endif
 
 fb.1: fb.pod
 	pod2man -c "" $< $@
