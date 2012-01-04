@@ -2,6 +2,7 @@ VERSION:=$(shell git describe --dirty | sed 's/^v//; s/-/./g')
 MANDIR=/usr/share/man
 BINDIR=/usr/bin
 LIBDIR=/usr/lib
+MY_LIBDIR=$(LIBDIR)/fb-client
 CC=cc
 CFLAGS?=-O2 -std=c99 -Wall -Wextra -pedantic
 LIBCURL:=$(shell pkg-config --silence-errors --libs --cflags libcurl)
@@ -10,7 +11,7 @@ all: fb.1 fb fb-helper
 
 fb: fb.in
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
-	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(LIBDIR)|' $< > $@
+	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(MY_LIBDIR)|' $< > $@
 	chmod 755 $@
 
 ifdef LIBCURL
@@ -20,7 +21,7 @@ else
 fb-helper: fb-helper.sh.in
 	@echo "libcurl not found. using shell helper..."
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
-	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(LIBDIR)|' $< > $@
+	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(MY_LIBDIR)|' $< > $@
 	chmod 755 $@
 endif
 
@@ -33,12 +34,12 @@ clean:
 
 install: all
 	install -Dm755 fb $(DESTDIR)$(BINDIR)/fb
-	install -Dm755 fb-helper $(DESTDIR)$(LIBDIR)/fb-helper
+	install -Dm755 fb-helper $(DESTDIR)$(MY_LIBDIR)/fb-helper
 	install -Dm644 fb.1 $(DESTDIR)$(MANDIR)/man1/fb.1
 
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/fb
-	rm -f $(DESTDIR)$(LIBDIR)/fb-helper
+	rm -rf $(DESTDIR)$(MY_LIBDIR)
 	rm -f $(DESTDIR)$(MANDIR)/man1/fb.1
 
 dist: all
