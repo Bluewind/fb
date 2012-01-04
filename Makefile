@@ -35,6 +35,7 @@ clean:
 install: all
 	install -Dm755 fb $(DESTDIR)$(BINDIR)/fb
 	install -Dm755 fb-helper $(DESTDIR)$(MY_LIBDIR)/fb-helper
+	install -Dm755 functions $(DESTDIR)$(MY_LIBDIR)/functions
 	install -Dm644 fb.1 $(DESTDIR)$(MANDIR)/man1/fb.1
 
 uninstall:
@@ -45,7 +46,7 @@ uninstall:
 dist: all
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
 	mkdir -p dist/fb-$(VERSION)
-	cp -a fb-helper.c fb{,.in} fb.pod fb.1 COPYING Makefile dist/fb-$(VERSION)
+	cp -a fb-helper.c fb{,.in} fb.pod fb.1 functions COPYING Makefile dist/fb-$(VERSION)
 	sed -i 's/^VERSION:=.*$$/VERSION:='$(VERSION)'/' dist/fb-$(VERSION)/Makefile
 	cd dist; tar -czf fb-$(VERSION).tar.gz fb-$(VERSION)
 

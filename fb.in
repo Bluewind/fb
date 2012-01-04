@@ -24,6 +24,8 @@ CLIPBOARD=""
 EXITCODE=0
 LIBDIR="@LIBDIR@"
 
+source "$LIBDIR/functions"
+
 require_executable() {
 	if ! type $1 >/dev/null; then
 		echo "Error: $1 not found. Please install." >&2
@@ -87,9 +89,9 @@ do_upload() {
 	fi
 
 	TMPFILE=`mktemp "$TMPDIR/data.XXXXXX"`
-	if [ `stat -c %s -- "$file"` -gt "$WARNSIZE" ]; then
+	if [ `$STAT -- "$file"` -gt "$WARNSIZE" ]; then
 		WARNSIZE=`$LIBDIR/fb-helper d "$PASTEBIN/file/get_max_size"`
-		if [ `stat -c %s -- "$file"` -gt "$WARNSIZE" ]; then
+		if [ `$STAT -- "$file"` -gt "$WARNSIZE" ]; then
 			echo "Warning: Your upload is too big and would be rejected. Maximum size is: $WARNSIZE bytes. Skipping..." >&2
 			return 1
 		fi
