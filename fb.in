@@ -68,7 +68,7 @@ request_helper() {
 
 		if [ "$mode" = "u" ]; then
 			basefilename=`basename -- "$file"`
-			if [ `$STAT -- "$file"` -eq "0" ] || echo "$basefilename" | grep -F -q ","; then
+			if [ "`$STAT -- "$file"`" -eq "0" ] || echo "$basefilename" | grep -F -q ","; then
 				base64fn="`base64_encode "$basefilename"`"
 				curl $CURLOPTS -F "file=@-" -F "filename=$base64fn" "$url" < "$file" -o /dev/stdout
 			else
@@ -143,9 +143,9 @@ do_upload() {
 	fi
 
 	TMPFILE=`mktemp "$TMPDIR/data.XXXXXX"`
-	if [ `$STAT -- "$file"` -gt "$WARNSIZE" ]; then
+	if [ "`$STAT -- "$file"`" -gt "$WARNSIZE" ]; then
 		WARNSIZE=`request_helper d "$PASTEBIN/file/get_max_size"`
-		if [ `$STAT -- "$file"` -gt "$WARNSIZE" ]; then
+		if [ "`$STAT -- "$file"`" -gt "$WARNSIZE" ]; then
 			echo "Warning: Your upload is too big and would be rejected. Maximum size is: $WARNSIZE bytes. Skipping..." >&2
 			return 1
 		fi
