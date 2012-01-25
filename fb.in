@@ -180,6 +180,11 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
 !
 }
 
+if ! type getopts >/dev/null 2>&1; then
+	echo "Error: getopts is not supported by your shell" >&2
+	exit 1
+fi
+
 while getopts "e:gdhHtcv" OPTION; do
 	case $OPTION in
 		e) EXTENSION="$OPTARG";;
