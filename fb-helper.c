@@ -53,7 +53,13 @@ int load_file(const char *fn, char **data, size_t *data_size)
 			perror("load_file");
 			return 1;
 		}
+
 		*data_size += fread(*data + *data_size, sizeof(char), buf_size, fp);
+
+		if (ferror(fp)) {
+			perror("load_file");
+			return 1;
+		}
 	}
 
 	fclose(fp);
