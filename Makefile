@@ -7,23 +7,19 @@ CC=cc
 CFLAGS?=-O2 -std=c99 -Wall -Wextra -pedantic
 LIBCURL:=$(shell pkg-config --silence-errors --libs --cflags libcurl)
 
+ifdef LIBCURL
 all: fb.1 fb fb-helper
+else
+all: fb.1 fb
+endif
 
 fb: fb.in
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
 	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(MY_LIBDIR)|' $< > $@
 	chmod 755 $@
 
-ifdef LIBCURL
 fb-helper: fb-helper.c
 	$(CC) $(CFLAGS) $(LIBCURL) -DVERSION=\"$(VERSION)\" -o $@ $<
-else
-fb-helper: fb-helper.sh.in
-	@echo "libcurl not found. using shell helper..."
-	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
-	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(MY_LIBDIR)|' $< > $@
-	chmod 755 $@
-endif
 
 fb.1: fb.pod
 	pod2man -c "" $< $@
@@ -34,8 +30,9 @@ clean:
 
 install: all
 	install -Dm755 fb $(DESTDIR)$(BINDIR)/fb
+ifdef LIBCURL
 	install -Dm755 fb-helper $(DESTDIR)$(MY_LIBDIR)/fb-helper
-	install -Dm755 functions $(DESTDIR)$(MY_LIBDIR)/functions
+endif
 	install -Dm644 fb.1 $(DESTDIR)$(MANDIR)/man1/fb.1
 
 uninstall:
@@ -46,7 +43,7 @@ uninstall:
 dist: all
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
 	mkdir -p dist/fb-$(VERSION)
-	cp -a fb-helper.c fb{,.in} fb.pod fb.1 functions COPYING Makefile dist/fb-$(VERSION)
+	cp -a fb-helper.c fb{,.in} fb.pod fb.1 COPYING Makefile dist/fb-$(VERSION)
 	sed -i 's/^VERSION:=.*$$/VERSION:='$(VERSION)'/' dist/fb-$(VERSION)/Makefile
 	cd dist; tar -czf fb-$(VERSION).tar.gz fb-$(VERSION)
 

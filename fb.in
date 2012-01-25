@@ -24,7 +24,42 @@ CLIPBOARD=""
 EXITCODE=0
 LIBDIR="@LIBDIR@"
 
-source "$LIBDIR/functions"
+# the calling conventions for stat(1) are highly system dependent
+STAT='stat -c %s' # GNU stat(1) is the default since most people have it
+case "`uname -s`" in
+	*BSD)  STAT='stat -f %z';;
+	Minix) STAT='stat -size';;
+esac
+
+request_helper() {
+	mode=$1
+	url=$2
+	file=$3
+
+	# if available use the external helper, else fall back to calling curl
+	if [ -x "$LIBDIR/fb-helper" ]; then
+		$LIBDIR/fb-helper "$mode" "$url" "$file"
+	else
+		USERAGENT="fb-client/shell-$VERSION"
+		CURLOPTS="-n -L -A $USERAGENT"
+
+		if [ "$mode" = "d" ]; then
+			CURLOPTS="$CURLOPTS -s"
+		fi
+
+		if [ "$mode" = "u" ]; then
+			basefilename=`basename -- "$file"`
+			if [ `$STAT -- "$file"` -eq "0" ] || echo "$basefilename" | grep -F -q ","; then
+				base64fn=`echo "$basefilename" | base64 -w0 `
+				curl $CURLOPTS -F "file=@-" -F "filename=$base64fn" "$url" < "$file" -o /dev/stdout
+			else
+				curl $CURLOPTS -F "file=@$file" "$url" -o /dev/stdout
+			fi
+		else
+			curl $CURLOPTS "$url"
+		fi
+	fi
+}
 
 require_executable() {
 	if ! type $1 >/dev/null; then
@@ -90,14 +125,14 @@ do_upload() {
 
 	TMPFILE=`mktemp "$TMPDIR/data.XXXXXX"`
 	if [ `$STAT -- "$file"` -gt "$WARNSIZE" ]; then
-		WARNSIZE=`$LIBDIR/fb-helper d "$PASTEBIN/file/get_max_size"`
+		WARNSIZE=`request_helper d "$PASTEBIN/file/get_max_size"`
 		if [ `$STAT -- "$file"` -gt "$WARNSIZE" ]; then
 			echo "Warning: Your upload is too big and would be rejected. Maximum size is: $WARNSIZE bytes. Skipping..." >&2
 			return 1
 		fi
 	fi
 
-	$LIBDIR/fb-helper u "$PASTEBIN/file/do_upload" "$file" > $TMPFILE || return 1
+	request_helper u "$PASTEBIN/file/do_upload" "$file" > $TMPFILE || return 1
 
 	sed '$d' $TMPFILE >&2
 	URL=`tail -1 $TMPFILE`"$EXTENSION"
@@ -177,20 +212,20 @@ if [ "$DELETE" ] || [ "$GET" ]; then
 	for i in "$@"; do
 		i=$(id_from_arg "$i")
 		if [ "$DELETE" ]; then
-			$LIBDIR/fb-helper d "$PASTEBIN/file/delete/$i" || EXITCODE=1
+			request_helper d "$PASTEBIN/file/delete/$i" || EXITCODE=1
 
 		elif [ "$GET" ]; then
 			if [ "$COMPRESS" = "1" ]; then
-				$LIBDIR/fb-helper d "$PASTEBIN/$i" | gzip -cd || EXITCODE=1
+				request_helper d "$PASTEBIN/$i" | gzip -cd || EXITCODE=1
 			elif [ "$COMPRESS" = "2" ]; then
-				$LIBDIR/fb-helper d "$PASTEBIN/$i" | xz -cd || EXITCODE=1
+				request_helper d "$PASTEBIN/$i" | xz -cd || EXITCODE=1
 			else
-				$LIBDIR/fb-helper d "$PASTEBIN/$i" || EXITCODE=1
+				request_helper d "$PASTEBIN/$i" || EXITCODE=1
 			fi
 		fi
 	done
 elif [ "$DISPLAYHISTORY" ]; then
-	$LIBDIR/fb-helper d "$PASTEBIN/file/upload_history" || EXITCODE=1
+	request_helper d "$PASTEBIN/file/upload_history" || EXITCODE=1
 
 elif [ $# -eq 0 ]; then
 	if [ "$TAR" ]; then
@@ -218,7 +253,7 @@ else
 		for i in "$@"; do
 			if is_url "$i"; then
 				cd $TMPDIR
-				if ! $LIBDIR/fb-helper d "$i" > "`basename "$i"`"; then
+				if ! request_helper d "$i" > "`basename "$i"`"; then
 					EXITCODE=1
 					continue
 				fi
