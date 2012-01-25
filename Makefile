@@ -29,11 +29,14 @@ clean:
 	rm -rf dist
 
 install: all
-	install -Dm755 fb $(DESTDIR)$(BINDIR)/fb
+	install -dm755 $(DESTDIR)$(BINDIR)
+	install -m755 fb $(DESTDIR)$(BINDIR)/fb
 ifdef LIBCURL
-	install -Dm755 fb-helper $(DESTDIR)$(MY_LIBDIR)/fb-helper
+	install -dm755 $(DESTDIR)$(MY_LIBDIR)
+	install -m755 fb-helper $(DESTDIR)$(MY_LIBDIR)/fb-helper
 endif
-	install -Dm644 fb.1 $(DESTDIR)$(MANDIR)/man1/fb.1
+	install -dm755 $(DESTDIR)$(MANDIR)
+	install -m644 fb.1 $(DESTDIR)$(MANDIR)/man1/fb.1
 
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/fb
