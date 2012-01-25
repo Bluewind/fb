@@ -31,6 +31,18 @@ case "`uname -s`" in
 	Minix) STAT='stat -size';;
 esac
 
+base64_encode() {
+	if type base64 2>&1 >/dev/null; then
+		echo $1 | base64
+	elif type openssl 2>&1 >/dev/null; then
+		echo $1 | openssl enc -base64
+	else
+		echo "Warning: can't find base64 nor openssl executable" >&2
+		echo "         filename of uploaded file will be set to stdin" >&2
+		echo "stdin"
+	fi
+}
+
 request_helper() {
 	mode=$1
 	url=$2
@@ -50,7 +62,7 @@ request_helper() {
 		if [ "$mode" = "u" ]; then
 			basefilename=`basename -- "$file"`
 			if [ `$STAT -- "$file"` -eq "0" ] || echo "$basefilename" | grep -F -q ","; then
-				base64fn=`echo "$basefilename" | base64 -w0 `
+				base64fn="`base64_encode "$basefilename"`"
 				curl $CURLOPTS -F "file=@-" -F "filename=$base64fn" "$url" < "$file" -o /dev/stdout
 			else
 				curl $CURLOPTS -F "file=@$file" "$url" -o /dev/stdout
