@@ -53,7 +53,7 @@ request_helper() {
 		$LIBDIR/fb-helper "$mode" "$url" "$file"
 	else
 		USERAGENT="fb-client/shell-$VERSION"
-		CURLOPTS="-n -L -A $USERAGENT"
+		CURLOPTS="-# -n -L -A $USERAGENT"
 
 		if [ "$mode" = "d" ]; then
 			CURLOPTS="$CURLOPTS -s"
