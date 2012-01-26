@@ -37,7 +37,7 @@ delete or download files.
 By default, files will be uploaded as-is and a link to the file will be printed
 to stdout after each upload.
 .Pp
-Folders will be packed into a tarball with
+Directories will be packed into a tarball with
 .Xr tar 1 and the resulting
 .Pa upload.tar
 file will be uploaded.
@@ -57,7 +57,7 @@ is installed.
 .It Fl c
 Compress the files to be uploaded using
 .Xr gzip 1 .
-This affects all files including piped content and folders.
+This affects all files including piped content and directories.
 If specified twice,
 .Xr xz 1
 will be used rather than gzip.
@@ -112,14 +112,14 @@ underlying
 program supports it.
 .Sh EXAMPLES
 .Bl -tag
-.It Nm Fl tc Ar folder file
-This will create a .tar archive containing the folder and the file and compress
+.It Nm Fl tc Ar directory file
+This will create a .tar archive containing the directory and the file and compress
 it using gzip and upload one archive.
-.It Nm Fl c Ar folder file
-This will create a .tar archive containing only the folder. Both (folder and
+.It Nm Fl c Ar directory file
+This will create a .tar archive containing only the directory. Both (directory and
 file) will be compressed using gzip and uploaded independently.
-.It Nm Fl cc Ar folder
-This will create a .tar archive containing only the folder and compress it using xz.
+.It Nm Fl cc Ar directory
+This will create a .tar archive containing only the directory and compress it using xz.
 .It Ic make \&|\&& Nm
 This will upload the output of make (stdout and stderr) in csh and similar shells.
 .El
