@@ -19,12 +19,14 @@
 #include <libgen.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <curl/curl.h>
 #include <curl/easy.h>
 
 #define FORMAT_ARRAY_SIZE 5
 #define FORMAT_BYTES_BUFFER 64
+#define FORMAT_TIME_BUFFER 32
 
 /* struct which holds the persistent data for progress_callback */
 struct progressData {
@@ -89,6 +91,24 @@ void format_bytes(double bytes, char *buf)
 		snprintf(buf, FORMAT_BYTES_BUFFER, "%.0f%s", size, suffix[suffix_pos]);
 }
 
+void format_time(char *buf, int bufsize, time_t time)
+{
+	int seconds = 0;
+	int minutes = 0;
+	int hours = 0;
+
+	seconds = time%60;
+	minutes = (time/60)%60;
+	hours = time/60/60;
+
+	if (hours > 9000) {
+		snprintf(buf, bufsize, "OVER 9000!!");
+	} else if (hours > 0) {
+		snprintf(buf, bufsize, "%d:%02d:%02d", hours, minutes, seconds);
+	} else {
+		snprintf(buf, bufsize, "%02d:%02d", minutes, seconds);
+	}
+}
 
 int progress_callback(
 	void *cb_data,
@@ -101,6 +121,9 @@ int progress_callback(
 	int printed = 0;
 	char speed[FORMAT_BYTES_BUFFER];
 	char total[FORMAT_BYTES_BUFFER];
+	char eta[FORMAT_TIME_BUFFER];
+	time_t time_remaining = 0;
+	double ulspeed = 0.0;
 
 	if (0 == ulnow)
 		return 0;
@@ -118,19 +141,29 @@ int progress_callback(
 		(double)(now.tv_sec - data->last.tv_sec) +
 		(double)(now.tv_usec - data->last.tv_usec) / 1E6;
 
-	format_bytes((ulnow - data->ullast) / timeSpent, (char *)&speed);
 	/* don't refresh too often, catch if time went backwards */
 	if (timeSpent < 0.2 && timeSpent > -1.0)
 		return 0;
 
+	ulspeed = (ulnow - data->ullast) / timeSpent;
+
+	if (ulspeed < 1) {
+		snprintf(eta, sizeof(eta), "stalling");
+	} else {
+		time_remaining = (ultotal - ulnow) / ulspeed;
+		format_time(eta, sizeof(eta), time_remaining);
+	}
+
 	format_bytes(ulnow, (char *)&total);
+	format_bytes(ulspeed, (char *)&speed);
 
 	/* print the progress */
 	printed = fprintf(stderr,
-		"\r%s/s uploaded: %.1f%% = %s",
+		"\r%s/s uploaded: %.1f%% = %s; ETA: %s",
 		speed, /* upload speed */
 		ulnow * 100.0 / ultotal, /* percent uploaded */
-		total /* total data uploaded */
+		total, /* total data uploaded */
+		eta
 		);
 
 	/* pad the string if the last one was longer to remove left over characters */
