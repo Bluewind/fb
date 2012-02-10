@@ -316,8 +316,11 @@ int main(int argc, char *argv[])
 
 
 	/* bail if the upload stalls for 30 seconds */
-	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, (long)1);
-	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, (long)30);
+	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
+	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
+
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
 
 	/* save time for progress calculation */
 	gettimeofday(&cb_data.last, NULL);
