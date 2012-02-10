@@ -25,8 +25,8 @@
 #include <curl/easy.h>
 
 #define FORMAT_ARRAY_SIZE 5
-#define FORMAT_BYTES_BUFFER 64
-#define FORMAT_TIME_BUFFER 32
+#define FORMAT_BYTES_BUFFER 16
+#define FORMAT_TIME_BUFFER 16
 #define SAMPLE_COUNT 15
 
 #define UNUSED __attribute__((unused))
@@ -78,7 +78,7 @@ int load_file(const char *fn, char **data, size_t *data_size)
 	return 0;
 }
 
-void format_bytes(double bytes, char *buf)
+void format_bytes(char *buf, int bufsize, double bytes)
 {
 	double size = bytes;
 	int suffix_pos = 0;
@@ -95,9 +95,9 @@ void format_bytes(double bytes, char *buf)
 
 	// don't print decimals for bytes
 	if (suffix_pos != 0)
-		snprintf(buf, FORMAT_BYTES_BUFFER, "%.2f%s", size, suffix[suffix_pos]);
+		snprintf(buf, bufsize, "%.2f%s", size, suffix[suffix_pos]);
 	else
-		snprintf(buf, FORMAT_BYTES_BUFFER, "%.0f%s", size, suffix[suffix_pos]);
+		snprintf(buf, bufsize, "%.0f%s", size, suffix[suffix_pos]);
 }
 
 void format_time(char *buf, int bufsize, time_t time)
@@ -183,8 +183,8 @@ int progress_callback(
 		format_time(eta, sizeof(eta), time_remaining);
 	}
 
-	format_bytes(ulnow, (char *)&total);
-	format_bytes(ulspeed, (char *)&speed);
+	format_bytes((char *)&total, sizeof(total), ulnow);
+	format_bytes((char *)&speed, sizeof(speed), ulspeed);
 
 	/* print the progress */
 	printed = fprintf(stderr,
