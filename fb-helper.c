@@ -24,7 +24,6 @@
 #include <curl/curl.h>
 #include <curl/easy.h>
 
-#define FORMAT_ARRAY_SIZE 5
 #define FORMAT_BYTES_BUFFER 16
 #define FORMAT_TIME_BUFFER 16
 #define SAMPLE_COUNT 15
