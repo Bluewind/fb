@@ -29,6 +29,8 @@
 #define FORMAT_TIME_BUFFER 32
 #define SAMPLE_COUNT 15
 
+#define UNUSED __attribute__((unused))
+
 struct sample {
 	size_t size;
 	double time;
@@ -119,7 +121,7 @@ void format_time(char *buf, int bufsize, time_t time)
 
 int progress_callback(
 	void *cb_data,
-	double dltotal, double dlnow,
+	double UNUSED dltotal, double UNUSED dlnow,
 	double ultotal, double ulnow
 ){
 	struct timeval now;
