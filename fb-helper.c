@@ -27,13 +27,20 @@
 #define FORMAT_ARRAY_SIZE 5
 #define FORMAT_BYTES_BUFFER 64
 #define FORMAT_TIME_BUFFER 32
+#define SAMPLE_COUNT 15
+
+struct sample {
+	size_t size;
+	double time;
+};
 
 /* struct which holds the persistent data for progress_callback */
 struct progressData {
-	struct timeval starttime;
 	struct timeval last;
 	double ullast;
 	int lastStringLength;
+	struct sample samples[SAMPLE_COUNT];
+	int current_sample;
 };
 
 /* load the contents of file fn into data */
@@ -123,7 +130,10 @@ int progress_callback(
 	char total[FORMAT_BYTES_BUFFER];
 	char eta[FORMAT_TIME_BUFFER];
 	time_t time_remaining = 0;
+
 	double ulspeed = 0.0;
+	size_t sample_total = 0;
+	double sample_time = 0.0;
 
 	if (0 == ulnow)
 		return 0;
@@ -145,7 +155,24 @@ int progress_callback(
 	if (timeSpent < 0.2 && timeSpent > -1.0)
 		return 0;
 
-	ulspeed = (ulnow - data->ullast) / timeSpent;
+	/* save a sample every time we update and average over all samples
+	 * to reduce jumpiness */
+	data->samples[data->current_sample].size = ulnow - data->ullast;
+	data->samples[data->current_sample].time = timeSpent;
+
+	data->current_sample++;
+	if (data->current_sample >= SAMPLE_COUNT) {
+		data->current_sample = 0;
+	}
+
+	for (int i = 0; i < SAMPLE_COUNT; i++) {
+		if (data->samples[i].size != 0) {
+			sample_total += data->samples[i].size;
+			sample_time += data->samples[i].time;
+		}
+	}
+
+	ulspeed = sample_total / sample_time;
 
 	if (ulspeed < 1) {
 		snprintf(eta, sizeof(eta), "stalling");
@@ -192,10 +219,10 @@ int main(int argc, char *argv[])
 	char *userAgent = "fb-client/"VERSION;
 
 	struct progressData cb_data = {
-		.starttime = {.tv_sec = 0, .tv_usec = 0},
 		.last = {.tv_sec = 0, .tv_usec = 0},
 		.ullast = 0.0,
-		.lastStringLength = 0
+		.lastStringLength = 0,
+		.current_sample = 0
 	};
 
 	char *mode = NULL;
@@ -291,7 +318,7 @@ int main(int argc, char *argv[])
 	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, (long)30);
 
 	/* save time for progress calculation */
-	gettimeofday(&cb_data.starttime, NULL);
+	gettimeofday(&cb_data.last, NULL);
 
 	/* run the request */
 	res = curl_easy_perform(curl);
