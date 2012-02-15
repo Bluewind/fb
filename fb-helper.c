@@ -109,9 +109,7 @@ void format_time(char *buf, int bufsize, time_t time)
 	minutes = (time/60)%60;
 	hours = time/60/60;
 
-	if (hours > 9000) {
-		snprintf(buf, bufsize, "OVER 9000!!");
-	} else if (hours > 0) {
+	if (hours > 0) {
 		snprintf(buf, bufsize, "%d:%02d:%02d", hours, minutes, seconds);
 	} else {
 		snprintf(buf, bufsize, "%02d:%02d", minutes, seconds);
