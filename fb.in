@@ -27,9 +27,8 @@ LIBDIR="@LIBDIR@"
 # the calling conventions for stat(1) are highly system dependent
 STAT='stat -c %s' # GNU stat(1) is the default since most people have it
 case "`uname -s`" in
-	*BSD)  STAT='stat -f %z';;
+	*BSD|Darwin)  STAT='stat -f %z';;
 	Minix) STAT='stat -size';;
-	Darwin) STAT='stat -f %b';;
 esac
 
 base64_encode() {
