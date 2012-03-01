@@ -288,7 +288,11 @@ else
 fi
 
 if [ "$CLIPBOARD" != "" ]; then
-	type xclip >/dev/null 2>&1 && echo -n $CLIPBOARD | nohup xclip >/dev/null 2>&1
+	case "`uname -s`" in
+		Darwin) CLIPBOARD_CMD=pbcopy;;
+		*) CLIPBOARD_CMD=xclip;;
+	esac
+	type $CLIPBOARD_CMD >/dev/null 2>&1 && echo -n $CLIPBOARD | nohup $CLIPBOARD_CMD >/dev/null 2>&1
 fi
 
 exit $EXITCODE
