@@ -33,7 +33,7 @@ ifdef LIBCURL
 	install -dm755 $(DESTDIR)$(MY_LIBDIR)
 	install -m755 fb-helper $(DESTDIR)$(MY_LIBDIR)/fb-helper
 endif
-	install -dm755 $(DESTDIR)$(MANDIR)
+	install -dm755 $(DESTDIR)$(MANDIR)/man1
 	install -m644 fb.1 $(DESTDIR)$(MANDIR)/man1/fb.1
 
 uninstall:
