@@ -26,9 +26,16 @@ LIBDIR="@LIBDIR@"
 
 # the calling conventions for stat(1) are highly system dependent
 STAT='stat -c %s' # GNU stat(1) is the default since most people have it
+
+CLIPBOARD_CMD=xclip
+
 case "`uname -s`" in
-	*BSD|Darwin)  STAT='stat -f %z';;
+	*BSD)  STAT='stat -f %z';;
 	Minix) STAT='stat -size';;
+	Darwin)
+		STAT='stat -f %z'
+		CLIPBOARD_CMD=pbcopy
+		;;
 esac
 
 base64_encode() {
@@ -288,10 +295,6 @@ else
 fi
 
 if [ "$CLIPBOARD" != "" ]; then
-	case "`uname -s`" in
-		Darwin) CLIPBOARD_CMD=pbcopy;;
-		*) CLIPBOARD_CMD=xclip;;
-	esac
 	type $CLIPBOARD_CMD >/dev/null 2>&1 && echo -n $CLIPBOARD | nohup $CLIPBOARD_CMD >/dev/null 2>&1
 fi
 
