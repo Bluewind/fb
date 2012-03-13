@@ -4,7 +4,8 @@ BINDIR=/usr/bin
 LIBDIR=/usr/lib
 MY_LIBDIR=$(LIBDIR)/fb-client
 CC=cc
-CFLAGS?=-O2 -std=c99 -Wall -Wextra -pedantic
+CFLAGS?=-O2
+MY_CFLAGS=-std=c99 -Wall -Wextra -pedantic
 LIBCURL:=$(shell pkg-config --silence-errors --libs --cflags libcurl)
 
 ifdef LIBCURL
@@ -19,7 +20,7 @@ fb: fb.in
 	chmod 755 $@
 
 fb-helper: fb-helper.c
-	$(CC) $(CFLAGS) $(LIBCURL) -DVERSION=\"$(VERSION)\" -o $@ $<
+	$(CC) $(MY_CFLAGS) $(CFLAGS) $(LIBCURL) -DVERSION=\"$(VERSION)\" -o $@ $<
 
 clean:
 	rm -f fb fb-helper
