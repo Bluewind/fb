@@ -245,13 +245,15 @@ int main(int argc, char *argv[])
 	/* initialize curl */
 	if (curl_global_init(CURL_GLOBAL_ALL) != 0) {
 		fprintf(stderr, "Error initializing curl");
-		return 10;
+		ret = 10;
+		goto cleanup;
 	}
 
 	curl = curl_easy_init();
 	if(!curl) {
 		fprintf(stderr, "Error initializing curl");
-		return 1;
+		ret = 1;
+		goto cleanup;
 	}
 
 	/* if we have a file to upload, add it as a POST request */
@@ -261,7 +263,8 @@ int main(int argc, char *argv[])
 		if(stat(file, &statbuf) == -1) {
 			fprintf(stderr, "fb-helper: %s: ", file);
 			perror(NULL);
-			return 1;
+			ret = 1;
+			goto cleanup;
 		}
 
 		/* load files with 0 size (/proc files for example) into memory so we can
@@ -270,7 +273,8 @@ int main(int argc, char *argv[])
 			size_t data_size = 0;
 
 			if (load_file(file, &data, &data_size) != 0) {
-				return 1;
+				ret = 1;
+				goto cleanup;
 			}
 
 			forms[0].option = CURLFORM_BUFFER;
@@ -329,9 +333,10 @@ int main(int argc, char *argv[])
 	if (res != 0) {
 		fprintf(stderr, "\n%s\n", curl_easy_strerror(res));
 		ret = 1;
+		goto cleanup;
 	}
 
-	/* cleanup */
+cleanup:
 	curl_easy_cleanup(curl);
 
 	if (formpost)
