@@ -1,7 +1,8 @@
 VERSION:=$(shell git describe --dirty | sed 's/^v//; s/-/./g')
-MANDIR=/usr/share/man
-BINDIR=/usr/bin
-LIBDIR=/usr/lib
+PREFIX=/usr
+MANDIR=$(PREFIX)/share/man
+BINDIR=$(PREFIX)/bin
+LIBDIR=$(PREFIX)/lib
 MY_LIBDIR=$(LIBDIR)/fb-client
 CC=cc
 CFLAGS:=-std=c99 -O2 -Wall -Wextra -pedantic $(CFLAGS)
