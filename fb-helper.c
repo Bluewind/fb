@@ -277,6 +277,12 @@ int main(int argc, char *argv[])
 				goto cleanup;
 			}
 
+			if (data_size == 0) {
+				fprintf(stderr, "Error: skipping 0-byte file: \"%s\"\n", file);
+				ret = 1;
+				goto cleanup;
+			}
+
 			forms[0].option = CURLFORM_BUFFER;
 			forms[0].value  = basename(file);
 			forms[1].option = CURLFORM_BUFFERPTR;

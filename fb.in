@@ -69,6 +69,10 @@ request_helper() {
 		if [ "$mode" = "u" ]; then
 			basefilename=`basename -- "$file"`
 			if [ "`$STAT -- "$file"`" -eq "0" ] || echo "$basefilename" | grep -F -q ","; then
+				if  [ "`wc -c -- "$file" | cut -d\  -f1`" -eq "0" ]; then
+					echo "Error: skipping 0-byte file: \"$file\"" >&2
+					return 1
+				fi
 				base64fn="`base64_encode "$basefilename"`"
 				curl $CURLOPTS -F "file=@-" -F "filename=$base64fn" "$url" < "$file" -o /dev/stdout
 			else
