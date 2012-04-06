@@ -119,8 +119,9 @@ do_upload() {
 	basefilename="`basename -- "$file"`"
 	basedirname="`dirname -- "$file"`"
 
-	if [ ! -e "$file" ]; then
-		echo "Error: File \"$file\" doesn't exist" >&2
+	if [ ! -r "$file" ]; then
+		# sh doesn't have perror so this message can't be more precise
+		echo "Error: File \"$file\" is not readable/not found." >&2
 		return 1
 	fi
 
