@@ -26,7 +26,7 @@ clean:
 	rm -f fb fb-helper
 	rm -rf dist
 
-install:
+install: all
 	install -dm755 $(DESTDIR)$(BINDIR)
 	install -m755 fb $(DESTDIR)$(BINDIR)/fb
 ifdef LIBCURL
