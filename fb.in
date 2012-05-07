@@ -300,7 +300,7 @@ else
 fi
 
 if [ "$CLIPBOARD" != "" ]; then
-	type $CLIPBOARD_CMD >/dev/null 2>&1 && echo -n $CLIPBOARD | nohup $CLIPBOARD_CMD >/dev/null 2>&1
+	type $CLIPBOARD_CMD >/dev/null 2>&1 && echo $CLIPBOARD | tr -d "\n" | nohup $CLIPBOARD_CMD >/dev/null 2>&1
 fi
 
 exit $EXITCODE
