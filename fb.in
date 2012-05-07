@@ -40,13 +40,13 @@ esac
 
 base64_encode() {
 	if type base64 2>&1 >/dev/null; then
-		echo $1 | base64
+		printf "%s" "$1" | base64
 	elif type openssl 2>&1 >/dev/null; then
-		echo $1 | openssl enc -base64
+		printf "%s" "$1" | openssl enc -base64
 	else
-		echo "Warning: can't find base64 nor openssl executable" >&2
-		echo "         filename of uploaded file will be set to stdin" >&2
-		echo "stdin"
+		printf "%s\n" "Warning: can't find base64 nor openssl executable" >&2
+		printf "%s\n" "         filename of uploaded file will be set to stdin" >&2
+		printf "%s\n" "stdin"
 	fi
 }
 
@@ -68,9 +68,9 @@ request_helper() {
 
 		if [ "$mode" = "u" ]; then
 			basefilename=`basename -- "$file"`
-			if [ "`$STAT -- "$file"`" -eq "0" ] || echo "$basefilename" | grep -F -q ","; then
+			if [ "`$STAT -- "$file"`" -eq "0" ] || printf "%s" "$basefilename" | grep -F -q ","; then
 				if  [ "`wc -c -- "$file" | cut -d\  -f1`" -eq "0" ]; then
-					echo "Error: skipping 0-byte file: \"$file\"" >&2
+					printf "%s\n" "Error: skipping 0-byte file: \"$file\"" >&2
 					return 1
 				fi
 				base64fn="`base64_encode "$basefilename"`"
@@ -86,13 +86,13 @@ request_helper() {
 
 require_executable() {
 	if ! type $1 >/dev/null; then
-		echo "Error: $1 not found. Please install." >&2
+		printf "%s\n" "Error: $1 not found. Please install." >&2
 		exit 1
 	fi
 }
 
 is_url() {
-	if echo "$i" | grep -qE "^(f|ht)tp(s)?://.+"; then
+	if printf "%s" "$i" | grep -qE "^(f|ht)tp(s)?://.+"; then
 		return 0
 	fi
 	return 1
@@ -121,7 +121,7 @@ do_upload() {
 
 	if [ ! -r "$file" ]; then
 		# sh doesn't have perror so this message can't be more precise
-		echo "Error: File \"$file\" is not readable/not found." >&2
+		printf "%s\n" "Error: File \"$file\" is not readable/not found." >&2
 		return 1
 	fi
 
@@ -151,7 +151,7 @@ do_upload() {
 	if [ "`$STAT -- "$file"`" -gt "$WARNSIZE" ]; then
 		WARNSIZE=`request_helper d "$PASTEBIN/file/get_max_size"`
 		if [ "`$STAT -- "$file"`" -gt "$WARNSIZE" ]; then
-			echo "Warning: Your upload is too big and would be rejected. Maximum size is: $WARNSIZE bytes. Skipping..." >&2
+			printf "%s\n" "Warning: Your upload is too big and would be rejected. Maximum size is: $WARNSIZE bytes. Skipping..." >&2
 			return 1
 		fi
 	fi
@@ -160,24 +160,28 @@ do_upload() {
 
 	sed '$d' $TMPFILE >&2
 	URL=`tail -1 $TMPFILE`"$EXTENSION"
-	echo $URL
-	if echo $URL | grep -qE "^https?://"; then
-		CLIPBOARD="$CLIPBOARD $URL"
+	printf "%s\n" "$URL"
+	if printf "%s" "$URL" | grep -qE "^https?://"; then
+		if [ -z "$CLIPBOARD" ]; then
+			CLIPBOARD="$URL"
+		else
+			CLIPBOARD="$CLIPBOARD $URL"
+		fi
 	fi
 }
 
 read_stdin() {
 	if tty -s; then
-		echo "^C to exit, ^D to send"
+		printf "%s\n" "^C to exit, ^D to send"
 	fi
 	cat > "$1"
 }
 
 id_from_arg() {
-	if echo "$1" | grep -qE "^https?://"; then
-		echo "$1" | sed -r 's/https?:\/\/[^\/]+\/([^\/]+).*/\1/'
+	if printf "%s" "$1" | grep -qE "^https?://"; then
+		printf "%s" "$1" | sed -r 's/https?:\/\/[^\/]+\/([^\/]+).*/\1/'
 	else
-		echo "$1"
+		printf "%s" "$1"
 	fi
 }
 
@@ -205,7 +209,7 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
 }
 
 if ! type getopts >/dev/null 2>&1; then
-	echo "Error: getopts is not supported by your shell" >&2
+	printf "%s\n" "Error: getopts is not supported by your shell" >&2
 	exit 1
 fi
 
@@ -217,7 +221,7 @@ while getopts "e:gdhHtcv" OPTION; do
 		t) TAR=1;;
 		d) DELETE=1;;
 		H) DISPLAYHISTORY=1;;
-		v) echo "$VERSION"; exit 0;;
+		v) printf "%s\n" "$VERSION"; exit 0;;
 		h|\?) help; exit 0;;
 	esac
 done
@@ -235,7 +239,7 @@ trap "rm -rf '${TMPDIR}'" EXIT TERM
 
 if [ "$DELETE" ] || [ "$GET" ]; then
 	if [ $# -eq 0 ]; then
-		echo "Error: no ID specified" >&2
+		printf "%s\n" "Error: no ID specified" >&2
 		exit 1
 	fi
 	for i in "$@"; do
@@ -258,7 +262,7 @@ elif [ "$DISPLAYHISTORY" ]; then
 
 elif [ $# -eq 0 ]; then
 	if [ "$TAR" ]; then
-		echo "Error: -t is not supported when operating on stdin" >&2
+		printf "%s\n" "Error: -t is not supported when operating on stdin" >&2
 		exit 1
 	fi
 	read_stdin "$TMPDIR/stdin"
@@ -273,7 +277,7 @@ else
 		done
 		if [ "$HAVE_URL" ]; then
 			# TODO: support -t when passing URLs as arguments
-			echo "Error: -t is not yet supported when operating on a URL" >&2
+			printf "%s\n" "Error: -t is not yet supported when operating on a URL" >&2
 			exit 1
 		else
 			do_tar_upload "$@" || EXITCODE=1
@@ -300,7 +304,7 @@ else
 fi
 
 if [ "$CLIPBOARD" != "" ]; then
-	type $CLIPBOARD_CMD >/dev/null 2>&1 && echo $CLIPBOARD | tr -d "\n" | nohup $CLIPBOARD_CMD >/dev/null 2>&1
+	type $CLIPBOARD_CMD >/dev/null 2>&1 && printf "%s" "$CLIPBOARD" | nohup $CLIPBOARD_CMD >/dev/null 2>&1
 fi
 
 exit $EXITCODE
