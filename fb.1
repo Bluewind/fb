@@ -42,6 +42,14 @@ Before terminating,
 will try to copy all links into the X clipboard if
 .Xr xclip 1
 is installed.
+.Pp
+If you want to use paste.xinu.at, you need to create an account there and add the following to your
+.Pa ~/.netrc :
+.Pp
+.Bd -literal -offset indent
+machine paste.xinu.at
+  login <your_username> password <your_secret_password>
+.Ed
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl c
@@ -76,14 +84,6 @@ command line.
 .It Fl v
 Display the client version.
 .El
-.Pp
-If you want to use paste.xinu.at, you need to create an account there and add the following to your
-.Pa ~/.netrc :
-.Pp
-.Bd -literal -offset indent
-machine paste.xinu.at
-  login <your_username> password <your_secret_password>
-.Ed
 .Sh ENVIRONMENT
 Some options can be changed by modifying environment variables:
 .Bl -tag -width XZ_OPTS
