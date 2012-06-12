@@ -69,7 +69,7 @@ request_helper() {
 		if [ "$mode" = "u" ]; then
 			basefilename=`basename -- "$file"`
 			if [ "`$STAT -- "$file"`" -eq "0" ] || printf "%s" "$basefilename" | grep -F -q ","; then
-				if  [ "`wc -c -- "$file" | cut -d\  -f1`" -eq "0" ]; then
+				if  [ "`wc -c < "$file"`" -eq "0" ]; then
 					printf "%s\n" "Error: skipping 0-byte file: \"$file\"" >&2
 					return 1
 				fi
