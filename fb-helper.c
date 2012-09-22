@@ -206,7 +206,7 @@ int progress_callback(
 
 int main(int argc, char *argv[])
 {
-	CURL *curl;
+	CURL *curl = NULL;
 	CURLcode res;
 
 	struct curl_httppost *formpost = NULL;
@@ -343,7 +343,8 @@ int main(int argc, char *argv[])
 	}
 
 cleanup:
-	curl_easy_cleanup(curl);
+	if (curl)
+		curl_easy_cleanup(curl);
 
 	if (formpost)
 		curl_formfree(formpost);
