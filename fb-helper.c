@@ -13,6 +13,8 @@
  *   (see COPYING for full license text)
  */
 
+#define _POSIX_C_SOURCE 1
+
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -20,6 +22,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <curl/curl.h>
 #include <curl/easy.h>
@@ -304,10 +307,12 @@ int main(int argc, char *argv[])
 			 CURLFORM_END);
 		curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
 
-		/* display progress bar */
-		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &cb_data);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+		if (isatty(fileno(stderr)) == 1) {
+			/* display progress bar*/
+			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+			curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &cb_data);
+			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+		}
 	}
 
 	/* initialize custom header list (stating that Expect: 100-continue is not
