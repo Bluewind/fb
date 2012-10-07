@@ -20,7 +20,7 @@ fb: fb.in
 	chmod 755 $@
 
 fb-helper: fb-helper.c
-	$(CC) $(CFLAGS) $(LIBCURL) -DVERSION=\"$(VERSION)\" -o $@ $<
+	$(CC) $(CFLAGS) $(LDFLAGS) -DVERSION=\"$(VERSION)\" -o $@ $< $(LIBCURL)
 
 clean:
 	rm -f fb fb-helper
