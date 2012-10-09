@@ -28,6 +28,15 @@ case "`uname -s`" in
 		;;
 esac
 
+if [ -z "$XDG_CONFIG_HOME" ]; then
+	XDG_CONFIG_HOME="$HOME/.config"
+fi
+
+config_file="$XDG_CONFIG_HOME/fb-client/config"
+if [ -e "$config_file" ]; then
+	. "$config_file"
+fi
+
 version="@VERSION@"
 delete=
 extension=""
