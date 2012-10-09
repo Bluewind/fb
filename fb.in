@@ -10,18 +10,8 @@
 # Optional dependency: xclip
 #----------------------------------------------------
 
-VERSION="@VERSION@"
-
-DELETE=
-EXTENSION=""
-GET=
-TAR=
-COMPRESS=0
-DISPLAYHISTORY=
 PASTEBIN="http://paste.xinu.at"
 WARNSIZE=10485760
-CLIPBOARD=""
-EXITCODE=0
 LIBDIR="@LIBDIR@"
 
 # the calling conventions for stat(1) are highly system dependent
@@ -37,6 +27,16 @@ case "`uname -s`" in
 		CLIPBOARD_CMD=pbcopy
 		;;
 esac
+
+VERSION="@VERSION@"
+DELETE=
+EXTENSION=""
+GET=
+TAR=
+COMPRESS=0
+DISPLAYHISTORY=
+CLIPBOARD=""
+EXITCODE=0
 
 base64_encode() {
 	if type base64 2>&1 >/dev/null; then
