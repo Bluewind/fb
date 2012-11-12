@@ -1,5 +1,5 @@
 /*
- * Description: This is intended as a helper script for fb only.
+ * Description: This is intended as a helper for fb only.
  *
  * Synopsis: ./fb-helper <action> <URL> <file>
  *
