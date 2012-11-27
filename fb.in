@@ -69,7 +69,7 @@ request_helper() {
 		$libdir/fb-helper "$mode" "$url" "$file"
 	else
 		useragent="fb-client/shell-$version"
-		curlopts="-# -n -L -A $useragent"
+		curlopts="-# -n -L -A $useragent --speed-time 30 --speed-limit 1 --connect-timeout 10"
 
 		if [ "$mode" = "d" ]; then
 			curlopts="$curlopts -s"
