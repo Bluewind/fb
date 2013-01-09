@@ -66,7 +66,15 @@ request_helper() {
 
 	# if available use the external helper, else fall back to calling curl
 	if [ -x "$libdir/fb-helper" ]; then
-		$libdir/fb-helper "$mode" "$url" "$file"
+		helperopts=""
+
+		if [ "$mode" = "d" ]; then
+			$libdir/fb-helper $helperopts -u "$url"
+		fi
+
+		if [ "$mode" = "u" ]; then
+			$libdir/fb-helper $helperopts -u "$url" -f "$file"
+		fi
 	else
 		useragent="fb-client/shell-$version"
 		curlopts="-# -n -L -A $useragent --speed-time 30 --speed-limit 1 --connect-timeout 10"

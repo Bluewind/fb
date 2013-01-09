@@ -13,7 +13,7 @@
  *   (see COPYING for full license text)
  */
 
-#define _POSIX_C_SOURCE 1
+#define _POSIX_C_SOURCE 2
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -45,6 +45,11 @@ struct progressData {
 	int lastStringLength;
 	struct sample samples[SAMPLE_COUNT];
 	int current_sample;
+};
+
+struct options {
+	char *url;
+	char *file;
 };
 
 /* load the contents of file fn into data */
@@ -227,23 +232,27 @@ int main(int argc, char *argv[])
 		.current_sample = 0
 	};
 
-	char *mode = NULL;
 	char *data = NULL;
-	char *url = NULL;
-	char *file = NULL;
 
 	int ret = 0;
 
-	/* process arguments */
-	if(argc == 1)
-		return 1;
+	int opt;
+	struct options options = {
+		.file = NULL,
+		.url = NULL
+	};
 
-	mode = argv[1];
+	while ((opt = getopt(argc, argv, "u:f:m:")) != -1) {
+		switch (opt) {
 
-	if (strncmp(mode, "u", 1) == 0)
-		file = argv[3];
+			case 'u': options.url = optarg; break;
 
-	url = argv[2];
+			case 'f': options.file = optarg; break;
+
+			default:
+				fprintf(stderr, "Error: unknown option %c", opt);
+		}
+	}
 
 	/* initialize curl */
 	if (curl_global_init(CURL_GLOBAL_ALL) != 0) {
@@ -260,11 +269,11 @@ int main(int argc, char *argv[])
 	}
 
 	/* if we have a file to upload, add it as a POST request */
-	if (file) {
+	if (options.file) {
 		struct stat statbuf;
 
-		if(stat(file, &statbuf) == -1) {
-			fprintf(stderr, "fb-helper: %s: ", file);
+		if(stat(options.file, &statbuf) == -1) {
+			fprintf(stderr, "fb-helper: %s: ", options.file);
 			perror(NULL);
 			ret = 1;
 			goto cleanup;
@@ -275,19 +284,19 @@ int main(int argc, char *argv[])
 		if (statbuf.st_size == 0) {
 			size_t data_size = 0;
 
-			if (load_file(file, &data, &data_size) != 0) {
+			if (load_file(options.file, &data, &data_size) != 0) {
 				ret = 1;
 				goto cleanup;
 			}
 
 			if (data_size == 0) {
-				fprintf(stderr, "Error: skipping 0-byte file: \"%s\"\n", file);
+				fprintf(stderr, "Error: skipping 0-byte file: \"%s\"\n", options.file);
 				ret = 1;
 				goto cleanup;
 			}
 
 			forms[0].option = CURLFORM_BUFFER;
-			forms[0].value  = basename(file);
+			forms[0].value  = basename(options.file);
 			forms[1].option = CURLFORM_BUFFERPTR;
 			forms[1].value  = data;
 			forms[2].option = CURLFORM_BUFFERLENGTH;
@@ -295,7 +304,7 @@ int main(int argc, char *argv[])
 			forms[3].option = CURLFORM_END;
 		} else {
 			forms[0].option = CURLFORM_FILE;
-			forms[0].value  = file;
+			forms[0].value  = options.file;
 			forms[1].option = CURLFORM_END;
 		}
 
@@ -320,12 +329,11 @@ int main(int argc, char *argv[])
 	headerlist = curl_slist_append(headerlist, buf);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
-	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_URL, options.url);
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
 
 	/* use .netrc settings for authentication if available */
 	curl_easy_setopt(curl, CURLOPT_NETRC, CURL_NETRC_OPTIONAL);
-
 
 	/* bail if the upload stalls for 30 seconds */
 	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
