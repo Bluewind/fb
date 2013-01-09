@@ -46,6 +46,7 @@ compress=0
 display_history=
 clipboard=""
 exitcode=0
+debug=
 
 base64_encode() {
 	if type base64 2>&1 >/dev/null; then
@@ -68,6 +69,10 @@ request_helper() {
 	if [ -x "$libdir/fb-helper" ]; then
 		helperopts=""
 
+		if [ "$debug" ]; then
+			helperopts="$helperopts -D"
+		fi
+
 		if [ "$mode" = "d" ]; then
 			$libdir/fb-helper $helperopts -u "$url"
 		fi
@@ -78,6 +83,10 @@ request_helper() {
 	else
 		useragent="fb-client/shell-$version"
 		curlopts="-# -n -L -A $useragent --speed-time 30 --speed-limit 1 --connect-timeout 10"
+
+		if [ "$debug" ]; then
+			curlopts="$curlopts -v"
+		fi
 
 		if [ "$mode" = "d" ]; then
 			curlopts="$curlopts -s"
@@ -222,6 +231,7 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
     -t               upload a tar file containing all files (and directories)
     -c               compress the file being uploaded with gz or xz if used 2 times
                      When used in conjunction with -g this decompresses the download
+    -D               show debugging information
 !
 }
 
@@ -230,7 +240,7 @@ if ! type getopts >/dev/null 2>&1; then
 	exit 1
 fi
 
-while getopts "e:gdhHtcv" option; do
+while getopts "e:gdhHtcvD" option; do
 	case $option in
 		e) extension="$OPTARG";;
 		g) get=1;;
@@ -239,6 +249,7 @@ while getopts "e:gdhHtcv" option; do
 		d) delete=1;;
 		H) display_history=1;;
 		v) printf "%s\n" "$version"; exit 0;;
+		D) debug=1;;
 		h|\?) help; exit 0;;
 	esac
 done

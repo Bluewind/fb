@@ -48,6 +48,7 @@ struct progressData {
 };
 
 struct options {
+	int debug;
 	char *url;
 	char *file;
 };
@@ -238,12 +239,14 @@ int main(int argc, char *argv[])
 
 	int opt;
 	struct options options = {
+		.debug = 0,
 		.file = NULL,
 		.url = NULL
 	};
 
-	while ((opt = getopt(argc, argv, "u:f:m:")) != -1) {
+	while ((opt = getopt(argc, argv, "Du:f:m:")) != -1) {
 		switch (opt) {
+			case 'D': options.debug = 1; break;
 
 			case 'u': options.url = optarg; break;
 
@@ -266,6 +269,10 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Error initializing curl");
 		ret = 1;
 		goto cleanup;
+	}
+
+	if (options.debug > 0) {
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	}
 
 	/* if we have a file to upload, add it as a POST request */
