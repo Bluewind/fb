@@ -254,6 +254,7 @@ int main(int argc, char *argv[])
 
 			default:
 				fprintf(stderr, "Error: unknown option %c", opt);
+				exit(1);
 		}
 	}
 
