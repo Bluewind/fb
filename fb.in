@@ -127,7 +127,7 @@ is_url() {
 do_tar_upload() {
 	if [ "$compress" = "1" ]; then
 		file="$tmpdir/upload.tar.gz"
-		tar -cf - -- "$@" | gzip -c > "$file" || return 1
+		tar -cf - -- "$@" | gzip -n -c > "$file" || return 1
 	elif [ "$compress" = "2" ]; then
 		file="$tmpdir/upload.tar.xz"
 		tar -cf - -- "$@" | xz -c > "$file" || return 1
@@ -155,7 +155,7 @@ do_upload() {
 		cd "$basedirname"
 		if [ "$compress" = "1" ]; then
 			file="$tmpdir/$basefilename.tar.gz"
-			tar -cf - -- "$basefilename" | gzip -c > "$file" || return 1
+			tar -cf - -- "$basefilename" | gzip -n -c > "$file" || return 1
 		elif [ "$compress" = "2" ]; then
 			file="$tmpdir/$basefilename.tar.xz"
 			tar -cf - -- "$basefilename" | xz -c > "$file" || return 1
@@ -165,7 +165,7 @@ do_upload() {
 		fi
 	else
 		if [ "$compress" = "1" ]; then
-			gzip -c -- "$file" > "$tmpdir/$basefilename.gz" || return 1
+			gzip -n -c -- "$file" > "$tmpdir/$basefilename.gz" || return 1
 			file="$tmpdir/$basefilename.gz"
 		elif [ "$compress" = "2" ]; then
 			xz -c -- "$file" > "$tmpdir/$basefilename.xz" || return 1
