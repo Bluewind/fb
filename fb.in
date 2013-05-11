@@ -10,7 +10,7 @@
 # Optional dependency: xclip
 #----------------------------------------------------
 
-pastebin="http://paste.xinu.at"
+pastebin="https://paste.xinu.at"
 warnsize=10485760
 libdir="@LIBDIR@"
 
