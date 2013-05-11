@@ -91,6 +91,8 @@ Display debugging information.
 .El
 .Sh CONFIGURATION FILES
 .Bl -tag
+.It $XDG_CONFIG_HOME/fb-client/apikey
+This file contains the API key to use for authentication. If this file exists, netrc authentication will be disabled.
 .It $XDG_CONFIG_HOME/fb-client/config
 This file allows to override certain variables by using the format 'option_name="value"'.
 Both, the option value and name, are case-sensitive string literals.
@@ -101,6 +103,8 @@ The following option names are supported:
 The URL of the pastebin you want to use
 .It clipboard_cmd
 The command used to copy URLs of uploaded files to the clipboard. This defaults to xclip or pbcopy on Darwin.
+.It apikey_file
+The file that contains the API key. This defaults to "$XDG_CONFIG_HOME/fb-client/apikey"
 .El
 .It ~/.netrc
 This file will be used for authentication.

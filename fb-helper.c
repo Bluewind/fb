@@ -51,6 +51,7 @@ struct options {
 	int debug;
 	char *url;
 	char *file;
+	char *apikeyfile;
 };
 
 /* load the contents of file fn into data */
@@ -222,6 +223,7 @@ void display_help()
 	printf("    -h         This help\n");
 	printf("    -u <url>   URL of pastebin or URL to download\n");
 	printf("    -f <file>  File to upload to URL\n");
+	printf("    -a <file>  Path to API key file\n");
 }
 
 int main(int argc, char *argv[])
@@ -251,7 +253,8 @@ int main(int argc, char *argv[])
 	struct options options = {
 		.debug = 0,
 		.file = NULL,
-		.url = NULL
+		.url = NULL,
+		.apikeyfile = NULL
 	};
 
 	if (argc == 1) {
@@ -259,13 +262,15 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 
-	while ((opt = getopt(argc, argv, "Du:f:m:h")) != -1) {
+	while ((opt = getopt(argc, argv, "Du:f:m:a:h")) != -1) {
 		switch (opt) {
 			case 'D': options.debug = 1; break;
 
 			case 'u': options.url = optarg; break;
 
 			case 'f': options.file = optarg; break;
+
+			case 'a': options.apikeyfile = optarg; break;
 
 			case 'h':
 				display_help();
@@ -295,6 +300,18 @@ int main(int argc, char *argv[])
 	if (options.debug > 0) {
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	}
+
+	if (options.apikeyfile) {
+		curl_formadd(&formpost,
+			 &lastptr,
+			 CURLFORM_COPYNAME, "apikey",
+			 CURLFORM_FILECONTENT, options.apikeyfile,
+			 CURLFORM_END);
+	} else {
+		/* use .netrc settings for authentication if available */
+		curl_easy_setopt(curl, CURLOPT_NETRC, CURL_NETRC_OPTIONAL);
+	}
+
 
 	/* if we have a file to upload, add it as a POST request */
 	if (options.file) {
@@ -357,9 +374,6 @@ int main(int argc, char *argv[])
 
 	curl_easy_setopt(curl, CURLOPT_URL, options.url);
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
-
-	/* use .netrc settings for authentication if available */
-	curl_easy_setopt(curl, CURLOPT_NETRC, CURL_NETRC_OPTIONAL);
 
 	/* bail if the upload stalls for 30 seconds */
 	curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
