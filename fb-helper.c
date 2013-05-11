@@ -233,7 +233,6 @@ int main(int argc, char *argv[])
 	struct curl_httppost *lastptr = NULL;
 	struct curl_slist *headerlist = NULL;
 	static const char buf[] = "Expect:";
-	struct curl_forms forms[4];
 
 	char *userAgent = "fb-client/"VERSION;
 
@@ -324,26 +323,22 @@ int main(int argc, char *argv[])
 				goto cleanup;
 			}
 
-			forms[0].option = CURLFORM_BUFFER;
-			forms[0].value  = basename(options.file);
-			forms[1].option = CURLFORM_BUFFERPTR;
-			forms[1].value  = data;
-			forms[2].option = CURLFORM_BUFFERLENGTH;
-			forms[2].value  = (char *)data_size;
-			forms[3].option = CURLFORM_END;
+			/* Fill in the file upload field */
+			curl_formadd(&formpost,
+				 &lastptr,
+				 CURLFORM_COPYNAME, "file",
+				 CURLFORM_BUFFER, basename(options.file),
+				 CURLFORM_BUFFERPTR, data,
+				 CURLFORM_BUFFERLENGTH, (char *)data_size,
+				 CURLFORM_END);
 		} else {
-			forms[0].option = CURLFORM_FILE;
-			forms[0].value  = options.file;
-			forms[1].option = CURLFORM_END;
+			/* Fill in the file upload field */
+			curl_formadd(&formpost,
+				 &lastptr,
+				 CURLFORM_COPYNAME, "file",
+				 CURLFORM_FILE, options.file,
+				 CURLFORM_END);
 		}
-
-		/* Fill in the file upload field */
-		curl_formadd(&formpost,
-			 &lastptr,
-			 CURLFORM_COPYNAME, "file",
-			 CURLFORM_ARRAY, forms,
-			 CURLFORM_END);
-		curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
 
 		if (isatty(fileno(stderr)) == 1) {
 			/* display progress bar*/
@@ -352,6 +347,8 @@ int main(int argc, char *argv[])
 			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
 		}
 	}
+
+	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
 
 	/* initialize custom header list (stating that Expect: 100-continue is not
 		 wanted */
