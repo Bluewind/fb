@@ -213,6 +213,17 @@ int progress_callback(
 	return 0;
 }
 
+void display_help()
+{
+	printf("Usage: fb-helper <options>\n");
+	printf("\n");
+	printf("Options:\n");
+	printf("    -D         Print debugging information\n");
+	printf("    -h         This help\n");
+	printf("    -u <url>   URL of pastebin or URL to download\n");
+	printf("    -f <file>  File to upload to URL\n");
+}
+
 int main(int argc, char *argv[])
 {
 	CURL *curl = NULL;
@@ -244,13 +255,23 @@ int main(int argc, char *argv[])
 		.url = NULL
 	};
 
-	while ((opt = getopt(argc, argv, "Du:f:m:")) != -1) {
+	if (argc == 1) {
+		display_help();
+		exit(0);
+	}
+
+	while ((opt = getopt(argc, argv, "Du:f:m:h")) != -1) {
 		switch (opt) {
 			case 'D': options.debug = 1; break;
 
 			case 'u': options.url = optarg; break;
 
 			case 'f': options.file = optarg; break;
+
+			case 'h':
+				display_help();
+				exit(0);
+				break;
 
 			default:
 				fprintf(stderr, "Error: unknown option %c", opt);
