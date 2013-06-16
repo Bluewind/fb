@@ -91,7 +91,7 @@ Display debugging information.
 .It $XDG_CONFIG_HOME/fb-client/config
 This file allows to override certain variables by using the format 'option_name="value"'.
 Both, the option value and name, are case-sensitive string literals.
-
+.Pp
 The following option names are supported:
 .Bl -tag
 .It pastebin
@@ -118,6 +118,7 @@ create temporary files inside this directory rather than /tmp, if the
 underlying
 .Xr mktemp 1
 program supports it.
+.El
 .Sh EXAMPLES
 .Bl -tag
 .It Nm Fl tc Ar directory file
