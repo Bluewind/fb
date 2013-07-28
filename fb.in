@@ -40,6 +40,7 @@ fi
 version="@VERSION@"
 delete=
 extension=""
+filename="stdin"
 get=
 tar=
 compress=0
@@ -228,6 +229,8 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
 
   Options:
     -e <extension>   extension for default highlighting (e.g. "diff")
+    -n <file name>   file name to use for upload when reading from stdin
+                     Defaults to "stdin"
     -t               upload a tar file containing all files (and directories)
     -c               compress the file being uploaded with gz or xz if used 2 times
                      When used in conjunction with -g this decompresses the download
@@ -240,9 +243,10 @@ if ! type getopts >/dev/null 2>&1; then
 	exit 1
 fi
 
-while getopts "e:gdhHtcvD" option; do
+while getopts "e:n:gdhHtcvD" option; do
 	case $option in
 		e) extension="$OPTARG";;
+		n) filename="$OPTARG";;
 		g) get=1;;
 		c) compress=`expr $compress + 1`;;
 		t) tar=1;;
@@ -293,8 +297,8 @@ elif [ $# -eq 0 ]; then
 		printf "%s\n" "Error: -t is not supported when operating on stdin" >&2
 		exit 1
 	fi
-	read_stdin "$tmpdir/stdin"
-	do_upload "$tmpdir/stdin" || exitcode=1
+	read_stdin "$tmpdir/$filename"
+	do_upload "$tmpdir/$filename" || exitcode=1
 else
 	if [ "$tar" ]; then
 		have_url=
