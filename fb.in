@@ -32,6 +32,8 @@ if [ -z "$XDG_CONFIG_HOME" ]; then
 	XDG_CONFIG_HOME="$HOME/.config"
 fi
 
+apikey_file="$XDG_CONFIG_HOME/fb-client/apikey"
+
 config_file="$XDG_CONFIG_HOME/fb-client/config"
 if [ -e "$config_file" ]; then
 	. "$config_file"
@@ -45,9 +47,12 @@ get=
 tar=
 compress=0
 display_history=
+create_apikey=
 clipboard=""
 exitcode=0
 debug=
+useragent="fb-client/shell-$version"
+default_curlopts="-# -L -A $useragent --speed-time 30 --speed-limit 1 --connect-timeout 10"
 
 base64_encode() {
 	if type base64 2>&1 >/dev/null; then
@@ -74,6 +79,10 @@ request_helper() {
 			helperopts="$helperopts -D"
 		fi
 
+		if [ -e "$apikey_file" ]; then
+			helperopts="$helperopts -a $apikey_file"
+		fi
+
 		if [ "$mode" = "d" ]; then
 			$libdir/fb-helper $helperopts -u "$url"
 		fi
@@ -82,8 +91,15 @@ request_helper() {
 			$libdir/fb-helper $helperopts -u "$url" -f "$file"
 		fi
 	else
-		useragent="fb-client/shell-$version"
-		curlopts="-# -n -L -A $useragent --speed-time 30 --speed-limit 1 --connect-timeout 10"
+		curlopts="$default_curlopts"
+
+		require_executable curl
+
+		if [ -e "$apikey_file" ]; then
+			curlopts="$curlopts --data-urlencode 'apikey@$apikey_file'"
+		else
+			curlopts="$curlopts -n"
+		fi
 
 		if [ "$debug" ]; then
 			curlopts="$curlopts -v"
@@ -204,12 +220,55 @@ read_stdin() {
 	cat > "$1"
 }
 
+read_string() {
+	read -r tmp
+	echo "$tmp"
+}
+
 id_from_arg() {
 	if printf "%s" "$1" | grep -qE "^https?://"; then
 		printf "%s" "$1" | sed -r 's/https?:\/\/[^\/]+\/([^\/]+).*/\1/'
 	else
 		printf "%s" "$1"
 	fi
+}
+
+create_apikey() {
+	if [ -z "$HOST" ]; then
+		HOST=`hostname`
+	fi
+
+	require_executable curl
+
+	printf "%s" "Username: "
+	read_string | tr -d "\n" > "$tmpdir/username"
+
+	printf "%s" "Password: "
+	stty -echo
+	read_string | tr -d "\n" > "$tmpdir/password"
+	stty echo
+	printf "\n"
+
+	curlopts="$default_curlopts"
+	if [ "$debug" ]; then
+		curlopts="$curlopts -v"
+	fi
+
+	curl $curlopts -w "%{http_code}\n" -s -F "username=<$tmpdir/username" -F "password=<$tmpdir/password" -F "comment=fb-client $USER@$HOST" "$pastebin/user/create_apikey" > "$tmpdir/api-result"
+
+	rm "$tmpdir/username" "$tmpdir/password"
+
+	status_code=`tail -n 1 "$tmpdir/api-result"`
+
+	if [ "$status_code" == "200" ]; then
+		head -n 1 "$tmpdir/api-result" > "$apikey_file"
+		return 0
+	fi
+
+	echo "Failed to generate API key:" >&2
+	sed '$d' "$tmpdir/api-result" >&2
+
+	return 1
 }
 
 help() {
@@ -226,6 +285,7 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
     -h             this help
     -v             show the client version
     -H             display an upload history
+    -a             create a new api key
 
   Options:
     -e <extension>   extension for default highlighting (e.g. "diff")
@@ -243,7 +303,7 @@ if ! type getopts >/dev/null 2>&1; then
 	exit 1
 fi
 
-while getopts "e:n:gdhHtcvD" option; do
+while getopts "e:n:gdhHatcvD" option; do
 	case $option in
 		e) extension="$OPTARG";;
 		n) filename="$OPTARG";;
@@ -252,6 +312,7 @@ while getopts "e:n:gdhHtcvD" option; do
 		t) tar=1;;
 		d) delete=1;;
 		H) display_history=1;;
+		a) create_apikey=1;;
 		v) printf "%s\n" "$version"; exit 0;;
 		D) debug=1;;
 		h|\?) help; exit 0;;
@@ -291,7 +352,9 @@ if [ "$delete" ] || [ "$get" ]; then
 	done
 elif [ "$display_history" ]; then
 	request_helper d "$pastebin/file/upload_history" || exitcode=1
-
+elif [ "$create_apikey" ]; then
+	create_apikey
+	exit $?
 elif [ $# -eq 0 ]; then
 	if [ "$tar" ]; then
 		printf "%s\n" "Error: -t is not supported when operating on stdin" >&2
