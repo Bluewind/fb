@@ -50,6 +50,8 @@ display_history=
 clipboard=""
 exitcode=0
 debug=
+useragent="fb-client/shell-$version"
+default_curlopts="-# -L -A $useragent --speed-time 30 --speed-limit 1 --connect-timeout 10"
 
 base64_encode() {
 	if type base64 2>&1 >/dev/null; then
@@ -88,8 +90,9 @@ request_helper() {
 			$libdir/fb-helper $helperopts -u "$url" -f "$file"
 		fi
 	else
-		useragent="fb-client/shell-$version"
-		curlopts="-# -L -A $useragent --speed-time 30 --speed-limit 1 --connect-timeout 10"
+		curlopts="$default_curlopts"
+
+		require_executable curl
 
 		if [ -e "$apikey_file" ]; then
 			curlopts="$curlopts --data-urlencode 'apikey@$apikey_file'"
