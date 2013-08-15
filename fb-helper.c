@@ -68,11 +68,13 @@ int load_file(const char *fn, char **data, size_t *data_size)
 
 	/* read the file in buf_size chunks and appened the data to *data */
 	while (!feof(fp)) {
-		*data = realloc(*data, *data_size + buf_size);
-		if (*data == NULL) {
+		char *tmp;
+		tmp = realloc(*data, *data_size + buf_size);
+		if (tmp == NULL) {
 			perror("load_file");
 			return 1;
 		}
+		*data = tmp;
 
 		*data_size += fread(*data + *data_size, sizeof(char), buf_size, fp);
 
