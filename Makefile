@@ -4,7 +4,7 @@ MANDIR=$(PREFIX)/share/man
 BINDIR=$(PREFIX)/bin
 LIBDIR=$(PREFIX)/lib
 MY_LIBDIR=$(LIBDIR)/fb-client
-CC=cc
+CC?=cc
 CFLAGS:=-std=c99 -O2 -Wall -Wextra -pedantic $(CFLAGS)
 LIBCURL:=$(shell pkg-config --silence-errors --libs --cflags libcurl)
 
