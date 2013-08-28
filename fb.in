@@ -261,6 +261,9 @@ create_apikey() {
 	status_code=`tail -n 1 "$tmpdir/api-result"`
 
 	if [ "$status_code" == "200" ]; then
+		if [ ! -d "$XDG_CONFIG_HOME/fb-client/" ]; then
+			mkdir "$XDG_CONFIG_HOME/fb-client"
+		fi
 		head -n 1 "$tmpdir/api-result" > "$apikey_file"
 		return 0
 	fi
