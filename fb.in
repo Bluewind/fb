@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #----------------------------------------------------
 # Author:       Florian "Bluewind" Pritz <flo@xssn.at>
 # Contributor:  Moritz Wilhelmy
@@ -52,7 +52,7 @@ clipboard=""
 exitcode=0
 debug=
 useragent="fb-client/shell-$version"
-default_curlopts="-# -L -A $useragent --speed-time 30 --speed-limit 1 --connect-timeout 10"
+default_curlopts=(-# -L -A "$useragent" --speed-time 30 --speed-limit 1 --connect-timeout 10)
 
 base64_encode() {
 	if type base64 2>&1 >/dev/null; then
@@ -73,40 +73,40 @@ request_helper() {
 
 	# if available use the external helper, else fall back to calling curl
 	if [ -x "$libdir/fb-helper" ]; then
-		helperopts=""
+		helperopts=()
 
 		if [ "$debug" ]; then
-			helperopts="$helperopts -D"
+			helperopts+=(-D)
 		fi
 
 		if [ -e "$apikey_file" ]; then
-			helperopts="$helperopts -a $apikey_file"
+			helperopts+=(-a $apikey_file)
 		fi
 
 		if [ "$mode" = "d" ]; then
-			$libdir/fb-helper $helperopts -u "$url"
+			$libdir/fb-helper "${helperopts[@]}" -u "$url"
 		fi
 
 		if [ "$mode" = "u" ]; then
-			$libdir/fb-helper $helperopts -u "$url" -f "$file"
+			$libdir/fb-helper "${helperopts[@]}" -u "$url" -f "$file"
 		fi
 	else
-		curlopts="$default_curlopts"
+		curlopts=(${default_curlopts[@]})
 
 		require_executable curl
 
 		if [ -e "$apikey_file" ]; then
-			curlopts="$curlopts --data-urlencode 'apikey@$apikey_file'"
+			curlopts+=("--data-urlencode" "apikey@${apikey_file}")
 		else
-			curlopts="$curlopts -n"
+			curlopts+=("-n")
 		fi
 
 		if [ "$debug" ]; then
-			curlopts="$curlopts -v"
+			curlopts+=("-v")
 		fi
 
 		if [ "$mode" = "d" ]; then
-			curlopts="$curlopts -s"
+			curlopts+=("-s")
 		fi
 
 		if [ "$mode" = "u" ]; then
@@ -117,12 +117,12 @@ request_helper() {
 					return 1
 				fi
 				base64fn="`base64_encode "$basefilename"`"
-				curl $curlopts -F "file=@-" -F "filename=$base64fn" "$url" < "$file" -o /dev/stdout
+				curl "${curlopts[@]}" -F "file=@-" -F "filename=$base64fn" "$url" < "$file" -o /dev/stdout
 			else
-				curl $curlopts -F "file=@$file" "$url" -o /dev/stdout
+				curl "${curlopts[@]}" -F "file=@$file" "$url" -o /dev/stdout
 			fi
 		else
-			curl $curlopts "$url"
+			curl "${curlopts[@]}" "$url"
 		fi
 	fi
 }
@@ -249,12 +249,12 @@ create_apikey() {
 	stty echo
 	printf "\n"
 
-	curlopts="$default_curlopts"
+	curlopts=(${default_curlopts[@]})
 	if [ "$debug" ]; then
-		curlopts="$curlopts -v"
+		curlopts+=(-v)
 	fi
 
-	curl $curlopts -w "%{http_code}\n" -s -F "username=<$tmpdir/username" -F "password=<$tmpdir/password" -F "comment=fb-client $USER@$HOST" "$pastebin/user/create_apikey" > "$tmpdir/api-result"
+	curl "${curlopts[@]}" -w "%{http_code}\n" -s -F "username=<$tmpdir/username" -F "password=<$tmpdir/password" -F "comment=fb-client $USER@$HOST" "$pastebin/user/create_apikey" > "$tmpdir/api-result"
 
 	rm "$tmpdir/username" "$tmpdir/password"
 
