@@ -96,7 +96,7 @@ request_helper() {
 		require_executable curl
 
 		if [ -e "$apikey_file" ]; then
-			curlopts+=("--data-urlencode" "apikey@${apikey_file}")
+			curlopts+=("-F" "apikey=<${apikey_file}")
 		else
 			curlopts+=("-n")
 		fi
