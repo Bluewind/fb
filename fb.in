@@ -143,13 +143,13 @@ is_url() {
 
 do_tar_upload() {
 	if [ "$compress" = "1" ]; then
-		file="$tmpdir/upload.tar.gz"
+		file="$tmpdir/$filename.tar.gz"
 		tar -cf - -- "$@" | gzip -n -c > "$file" || return 1
 	elif [ "$compress" = "2" ]; then
-		file="$tmpdir/upload.tar.xz"
+		file="$tmpdir/$filename.tar.xz"
 		tar -cf - -- "$@" | xz -c > "$file" || return 1
 	else
-		file="$tmpdir/upload.tar"
+		file="$tmpdir/$filename.tar"
 		tar -cf "$file" -- "$@" || return 1
 	fi
 	compress=0
