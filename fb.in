@@ -44,6 +44,8 @@ delete=
 extension=""
 filename="stdin"
 get=
+multipaste=
+multipaste_ids=()
 tar=
 compress=0
 display_history=
@@ -67,13 +69,14 @@ base64_encode() {
 }
 
 request_helper() {
+	# available modes are: d, u, m
 	mode=$1
 	url=$2
 	file=$3
 
 	# if available use the external helper, else fall back to calling curl
 	if [ -x "$libdir/fb-helper" ]; then
-		helperopts=()
+		helperopts=(-u "$url")
 
 		if [ "$debug" ]; then
 			helperopts+=(-D)
@@ -83,13 +86,16 @@ request_helper() {
 			helperopts+=(-a $apikey_file)
 		fi
 
-		if [ "$mode" = "d" ]; then
-			$libdir/fb-helper "${helperopts[@]}" -u "$url"
+		if [ "$mode" = "u" ]; then
+			helperopts+=(-f "$file")
 		fi
 
-		if [ "$mode" = "u" ]; then
-			$libdir/fb-helper "${helperopts[@]}" -u "$url" -f "$file"
+		if [ "$mode" = "m" ]; then
+			for id in "${multipaste_ids[@]}"; do
+				helperopts+=(-F "ids[]=$id")
+			done
 		fi
+		$libdir/fb-helper "${helperopts[@]}"
 	else
 		curlopts=(${default_curlopts[@]})
 
@@ -103,6 +109,12 @@ request_helper() {
 
 		if [ "$debug" ]; then
 			curlopts+=("-v")
+		fi
+
+		if [ "$mode" = "m" ]; then
+			for id in "${multipaste_ids[@]}"; do
+				curlopts+=(-F "ids[]=$id")
+			done
 		fi
 
 		if [ "$mode" = "d" ]; then
@@ -138,6 +150,14 @@ is_url() {
 	if printf "%s" "$i" | grep -qE "^(f|ht)tp(s)?://.+"; then
 		return 0
 	fi
+	return 1
+}
+
+is_pastebin_url() {
+	if printf "%s" "$i" | grep -qE "^$pastebin.+"; then
+		return 0
+	fi
+
 	return 1
 }
 
@@ -284,6 +304,7 @@ usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
   Switches:
     -d <ID(s)>     delete the IDs
     -g <ID(s)>     download the IDs and output on stdout (use with care!)
+    -m             create a multipaste
     -h             this help
     -v             show the client version
     -H             display an upload history
@@ -305,11 +326,12 @@ if ! type getopts >/dev/null 2>&1; then
 	exit 1
 fi
 
-while getopts "e:n:gdhHatcvD" option; do
+while getopts "e:n:gmdhHatcvD" option; do
 	case $option in
 		e) extension="$OPTARG";;
 		n) filename="$OPTARG";;
 		g) get=1;;
+		m) multipaste=1;;
 		c) compress=`expr $compress + 1`;;
 		t) tar=1;;
 		d) delete=1;;
@@ -382,6 +404,13 @@ else
 	else
 		for i in "$@"; do
 			if is_url "$i"; then
+				if [ "$multipaste" ]; then
+					if is_pastebin_url "$i"; then
+						multipaste_ids+=("$(id_from_arg "$i")")
+						continue
+					fi
+				fi
+
 				cd $tmpdir
 				if ! request_helper d "$i" > "`basename "$i"`"; then
 					exitcode=1
@@ -397,6 +426,23 @@ else
 				do_upload "$i" || exitcode=1
 			fi
 		done
+	fi
+
+	if [ "$multipaste" ]; then
+		for url in $clipboard; do
+			id="$(id_from_arg "$url")"
+			multipaste_ids+=("$id")
+		done
+
+		tmpfile=`mktemp "$tmpdir/data.XXXXXX"`
+		request_helper m "$pastebin/file/do_multipaste" > $tmpfile || exitcode=1
+
+		sed '$d' $tmpfile >&2
+		url=`tail -1 $tmpfile`"$extension"
+		printf "%s\n" "$url"
+		if printf "%s" "$url" | grep -qE "^https?://"; then
+			clipboard="$url"
+		fi
 	fi
 fi
 

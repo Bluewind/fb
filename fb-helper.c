@@ -221,11 +221,12 @@ void display_help()
 	printf("Usage: fb-helper <options>\n");
 	printf("\n");
 	printf("Options:\n");
-	printf("    -D         Print debugging information\n");
-	printf("    -h         This help\n");
-	printf("    -u <url>   URL of pastebin or URL to download\n");
-	printf("    -f <file>  File to upload to URL\n");
-	printf("    -a <file>  Path to API key file\n");
+	printf("    -D            Print debugging information\n");
+	printf("    -h            This help\n");
+	printf("    -u <url>      URL of pastebin or URL to download\n");
+	printf("    -f <file>     File to upload to URL\n");
+	printf("    -F key=value  Post key=value\n");
+	printf("    -a <file>     Path to API key file\n");
 }
 
 int main(int argc, char *argv[])
@@ -264,13 +265,27 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 
-	while ((opt = getopt(argc, argv, "Du:f:m:a:h")) != -1) {
+	while ((opt = getopt(argc, argv, "Du:f:F:m:a:h")) != -1) {
 		switch (opt) {
 			case 'D': options.debug = 1; break;
 
 			case 'u': options.url = optarg; break;
 
 			case 'f': options.file = optarg; break;
+
+			case 'F':
+				  {
+					  char *save = NULL;
+					  char *key = strtok_r(optarg, "=", &save);
+					  char *value = strtok_r(save, "=", &save);
+
+					  curl_formadd(&formpost,
+							  &lastptr,
+							  CURLFORM_COPYNAME, key,
+							  CURLFORM_PTRCONTENTS, value,
+							  CURLFORM_END);
+				  }
+				break;
 
 			case 'a': options.apikeyfile = optarg; break;
 

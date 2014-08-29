@@ -83,6 +83,12 @@ terminal. You can no longer upload files in this mode. If the argument is a
 URL,
 .Nm
 will try to extract the ID.
+.It Fl m
+Create a multipaste of the IDs/files/directories/URLs. This uploads files as
+always, but then creates a multipaste combining all of them. URLs starting with
+the pastebin URL will have their ID extracted and will not be downloaded. Only
+the multipaste URL will be copied to the clipboard, but all URLs will be
+displayed while uploading.
 .It Fl h
 Display a short help message.
 .It Fl t
