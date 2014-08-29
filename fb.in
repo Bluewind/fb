@@ -280,7 +280,6 @@ fb-client version $version
 usage: [cat |] `basename "$0"` [switches] [options] [<file(s)|ID(s)|folder(s)>]
 
   Upload/nopaste file(s)/stdin to paste.xinu.at and copy URL(s) to clipboard.
-  ~/.netrc: machine paste.xinu.at login USERNAME password PASSWORD
 
   Switches:
     -d <ID(s)>     delete the IDs
