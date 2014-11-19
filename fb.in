@@ -223,6 +223,7 @@ do_upload() {
 
 	sed '$d' $tmpfile >&2
 	url=`tail -1 $tmpfile`"$extension"
+	rm "$tmpfile"
 	printf "%s\n" "$url"
 	if printf "%s" "$url" | grep -qE "^https?://"; then
 		if [ -z "$clipboard" ]; then
