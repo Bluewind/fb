@@ -399,6 +399,8 @@ int main(int argc, char *argv[])
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
 
+	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+
 	/* save time for progress calculation */
 	gettimeofday(&cb_data.last, NULL);
 
