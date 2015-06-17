@@ -247,8 +247,9 @@ read_string() {
 }
 
 id_from_arg() {
-	if printf "%s" "$1" | grep -qE "^https?://"; then
-		printf "%s" "$1" | sed -r 's/https?:\/\/[^\/]+\/([^\/]+).*/\1/'
+	local regex="https?:\/\/[^\/]+\/([^\/]+).*"
+	if [[ $1 =~ $regex ]]; then
+		printf "%s" "${BASH_REMATCH[1]}"
 	else
 		printf "%s" "$1"
 	fi
