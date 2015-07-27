@@ -347,6 +347,10 @@ done
 
 shift `expr $OPTIND - 1`
 
+if [[ "$#" -gt 1 && ! "$tar" ]]; then
+	multipaste=1
+fi
+
 if [ "$compress" = "1" ]; then
 	require_executable gzip
 elif [ "$compress" = "2" ]; then

@@ -28,7 +28,9 @@
 is a client to https://paste.xinu.at which allows the user to easily upload,
 delete or download files.
 By default, files will be uploaded as-is and a link to the file will be printed
-to stdout after each upload.
+to stdout after each upload. If multiple files are uploaded a multipaste ( see
+.Fl m
+) will be created automatically.
 .Pp
 Directories will be packed into a tarball with
 .Xr tar 1 and the resulting
@@ -88,7 +90,8 @@ Create a multipaste of the IDs/files/directories/URLs. This uploads files as
 always, but then creates a multipaste combining all of them. URLs starting with
 the pastebin URL will have their ID extracted and will not be downloaded. Only
 the multipaste URL will be copied to the clipboard, but all URLs will be
-displayed while uploading.
+displayed while uploading. This option is enabled automatically if multiple
+files are uploaded.
 .It Fl h
 Display a short help message.
 .It Fl t
