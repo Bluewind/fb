@@ -91,7 +91,7 @@ class CURLWrapper:
                 if filesize > self.serverConfig["upload_max_size"]:
                     raise APIException("File too big")
 
-            if self.serverConfig is not None and (currentChunkSize + filesize > self.serverConfig["upload_max_size"] \
+            if self.serverConfig is not None and (currentChunkSize + filesize > self.serverConfig["request_max_size"] \
                     or len(chunks[currentChunk]) >= self.serverConfig["max_files_per_request"]):
                 currentChunkSize = 0
                 currentChunk += 1
@@ -337,7 +337,7 @@ class FBClient:
     def parseConfig(self, file):
         c = ConfigParser(file)
         self.config = c.get_config()
-        self.config["api_url"] = self.config["pastebin"]+"/api/v1.1.0"
+        self.config["api_url"] = self.config["pastebin"]+"/api/v2.0.0"
         self.config["warnsize"] = 10*1024*1024
         self.config["min_files_per_request_default"] = 5
         self.config["min_variables_per_request_default"] = 20
