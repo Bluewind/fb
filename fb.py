@@ -530,12 +530,40 @@ class FBClient:
 
 
     def display_history(self):
+        timeFormat = '%a, %d %b %Y %H:%M:%S +0000'
         resp = self.curlw.send_post("/file/history")
-        items = resp["items"]
-        timeFormat = locale.nl_langinfo(locale.D_T_FMT)
+
+        multipasteItems = resp['multipaste_items']
+        if not multipasteItems:
+            multipasteItems = {}
+
+        items = resp['items']
+        if not items:
+            items = {}
+
+        items = list(items.values())
+        multipasteItems = list(multipasteItems.values())
+
+        for item in multipasteItems:
+            item['id'] = item['url_id']
+            item['filename'] = '%s file(s)' % (len(item['items']))
+            item['mimetype'] = ''
+            item['hash'] = ''
+            # sum filesize of all items
+            item['filesize'] = str(sum([int(resp['items'][i]['filesize']) for i in item['items'].keys()]))
+            items.append(item)
+
+        items.sort(key=lambda s: s['date'])
+
         itemsTable = [['ID', 'Filename', 'Mimetype', 'Date', 'Hash', 'Size']]
-        # TODO: sort items by date or something. currently they are in random order
-        itemsTable += [[i['id'], i['filename'], i['mimetype'], datetime.datetime.fromtimestamp(int(i['date'])).strftime(timeFormat), i['hash'], i['filesize']] for i in items.values()]
+        itemsTable += [[
+            i['id'],
+            i['filename'],
+            i['mimetype'],
+            datetime.datetime.fromtimestamp(int(i['date'])).strftime(timeFormat),
+            i['hash'],
+            i['filesize'
+                ]] for i in items]
         print_table(itemsTable)
 
     def display_version(self):
