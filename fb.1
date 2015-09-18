@@ -4,13 +4,13 @@
 .\"  Licensed under GPLv3
 .\"    (see COPYING for full license text)
 .\"
-.Dd July 20, 2014
+.Dd September 18, 2015
 .Dt FB 1
 .Os
 
 .Sh NAME
 .Nm fb
-.Nd a shell-script client for https://paste.xinu.at
+.Nd a client for https://paste.xinu.at
 
 .Sh SYNOPSIS
 .Nm
@@ -29,11 +29,10 @@ is a client to https://paste.xinu.at which allows the user to easily upload,
 delete or download files.
 By default, files will be uploaded as-is and a link to the file will be printed
 to stdout after each upload. If multiple files are uploaded a multipaste ( see
-.Fl m
+.Fl -multipaste
 ) will be created automatically.
 .Pp
-Directories will be packed into a tarball with
-.Xr tar 1 and the resulting
+Directories will be packed into a tarball and the resulting
 .Pa upload.tar
 file will be uploaded.
 If no arguments are given, data will be read from stdin into a temporary file
@@ -46,6 +45,8 @@ Before terminating,
 .Nm
 will try to copy all links into the X clipboard if
 .Xr xclip 1
+or on Darwin
+.Xr pbcopy
 is installed.
 .Pp
 If you want to use paste.xinu.at, you need to create an account there and then run
@@ -54,7 +55,7 @@ to create an API key.
 
 .Sh OPTIONS
 .Bl -tag -width Ds
-.It Fl c
+.It Fl c, -compress
 Compress the files to be uploaded using
 .Xr gzip 1 .
 This affects all files including piped content and directories.
@@ -63,43 +64,45 @@ If specified twice,
 will be used rather than gzip.
 If used in conjunction with the -g option this decompresses the download
 before it's output to stdout.
-.It Fl d
+.It Fl d, -delete
 Delete the IDs. You can no longer upload files in this mode. If the argument is a URL,
 .Nm
 will try to extract the ID.
-.It Fl e Ar extension
+.It Fl -config Ar <config file>
+Use an alternative configuration file. The default value is "$XDG_CONFIG_HOME/fb-client/config".
+.It Fl e Ar extension, Fl -extension Ar extension
 Change the extension used for highlighting. You can also do this if you
 have already uploaded the file by appending the extension to the URL.
 https://paste.xinu.at/<ID>/bash will change the syntax highlighting to bash.
-.It Fl n Ar file name
+.It Fl n Ar <file name>, Fl -name Ar <file name>
 Use the specified file name for the upload when pasting from stdin. Defaults
 to "stdin"
-.It Fl a
+.It Fl a, -create-apikey
 Create a new API key. Asks for username and password.
-.It Fl H
+.It Fl H, -history
 Display a history of uploads.
-.It Fl g
+.It Fl g, -get
 Download the IDs and output on stdout. Please take care when using this, as
 binary data may cause unexpected results when being output directly to a
 terminal. You can no longer upload files in this mode. If the argument is a
 URL,
 .Nm
 will try to extract the ID.
-.It Fl m
+.It Fl m, -multipaste
 Create a multipaste of the IDs/files/directories/URLs. This uploads files as
 always, but then creates a multipaste combining all of them. URLs starting with
 the pastebin URL will have their ID extracted and will not be downloaded. Only
 the multipaste URL will be copied to the clipboard, but all URLs will be
 displayed while uploading. This option is enabled automatically if multiple
 files are uploaded.
-.It Fl h
+.It Fl h, -help
 Display a short help message.
-.It Fl t
+.It Fl t, -tar
 Upload a tar file containing all files and directories specified on the
 command line. The file name can be specified with the -n option. (don't add any extensions)
-.It Fl v
+.It Fl v, -version
 Display the client version.
-.It Fl D
+.It Fl D, -debug
 Display debugging information.
 .El
 
@@ -110,6 +113,7 @@ This file contains the API key to use for authentication. If this file exists, n
 .It $XDG_CONFIG_HOME/fb-client/config
 This file allows to override certain variables by using the format 'option_name="value"'.
 Both, the option value and name, are case-sensitive string literals.
+Environment variables can be used in the value by using the $VARIABLE_NAME syntax.
 .Pp
 The following option names are supported:
 .Bl -tag
@@ -120,8 +124,6 @@ The command used to copy URLs of uploaded files to the clipboard. This defaults 
 .It apikey_file
 The file that contains the API key. This defaults to "$XDG_CONFIG_HOME/fb-client/apikey"
 .El
-.It ~/.netrc
-Deprecated. This file will be used for authentication unless an API key is configured. Usage of this file is discouraged because it contains your username and password in plain text.
 .El
 
 .Sh ENVIRONMENT
@@ -136,10 +138,7 @@ options to xz, in case xz is used for compression.
 .It TMPDIR
 Setting TMPDIR to some directory where
 .Nm
-create temporary files inside this directory rather than /tmp, if the
-underlying
-.Xr mktemp 1
-program supports it.
+creates temporary files inside this directory rather than the system default.
 .El
 
 .Sh EXAMPLES
@@ -159,7 +158,6 @@ This will upload the output of make (stdout and stderr) in csh and similar shell
 .Sh SEE ALSO
 .Xr curl 1 ,
 .Xr gzip 1 ,
-.Xr mktemp 1 ,
 .Xr tar 1 ,
 .Xr xz 1 ,
 .Xr xclip 1
