@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from enum import Enum
 import argparse
 import collections
 import contextlib
@@ -21,6 +20,12 @@ import time
 import xdg.BaseDirectory
 
 from io import BytesIO
+
+class Enum(set):
+    def __getattr__(self, name):
+        if name in self:
+            return name
+        raise AttributeError
 
 # Source: http://stackoverflow.com/a/434328/953022
 def chunker(seq, size):
@@ -335,7 +340,7 @@ class FBClient:
     if version.startswith('@'):
         version = 'unknown-version'
 
-    modes = Enum("modes", [
+    modes = Enum([
             "upload",
             "delete",
             "get",
