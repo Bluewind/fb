@@ -298,7 +298,7 @@ class Compressor:
         return file + '.xz'
 
 class ConfigParser:
-    def __init__(self, file):
+    def __init__(self, file, ignoreMissing=False):
         self.config = {}
         self.config["pastebin"] = "https://paste.xinu.at"
         self.config["clipboard_cmd"] = "xclip"
@@ -306,12 +306,22 @@ class ConfigParser:
             self.config["clipboard_cmd"] = "pbcopy"
         self.config["apikey_file"] = os.path.join(xdg.BaseDirectory.xdg_config_home, "fb-client/apikey")
 
-        self.parse(file)
+        self._parse(file, ignoreMissing=ignoreMissing)
 
         self.config["apikey_file"] = os.path.expandvars(self.config["apikey_file"])
 
-    def parse(self, file):
-        fh = open(file)
+    def _parse(self, file, ignoreMissing=False):
+        try:
+            fh = open(file)
+        except OSError as e:
+            if ignoreMissing:
+                if e.errno == errno.ENOENT:
+                    return
+            raise
+        except FileNotFoundError:
+            if ignoreMissing:
+                return
+
         for line in fh.readlines():
             matches = re.match('^(?P<key>[^=]+)=(?P<quotechar>"?)(?P<value>.+)(?P=quotechar)$', line)
             if matches != None:
@@ -337,8 +347,8 @@ class FBClient:
     def __init__(self):
         pass
 
-    def parseConfig(self, file):
-        c = ConfigParser(file)
+    def parseConfig(self, file, ignoreMissing=False):
+        c = ConfigParser(file, ignoreMissing=ignoreMissing)
         self.config = c.get_config()
         self.config["api_url"] = self.config["pastebin"]+"/api/v2.0.0"
         self.config["warnsize"] = 10*1024*1024
@@ -367,7 +377,7 @@ class FBClient:
         switches.add_argument("-H", "--history", dest="mode", action="store_const", const=self.modes.display_history,
                 help="Display an upload history")
 
-        parser.add_argument("--config", action="store", default=defaultConfigFile,
+        parser.add_argument("--config", action="store", default=None,
                 help="Use different config file")
         parser.add_argument("-D", "--debug", default=False, action="store_true",
                 help="Enable debug output")
@@ -390,7 +400,10 @@ class FBClient:
 
         self.args = parser.parse_args()
 
-        self.parseConfig(self.args.config)
+        if self.args.config is None:
+            self.parseConfig(defaultConfigFile, ignoreMissing=True)
+        else:
+            self.parseConfig(self.args.config)
 
         self.config["debug"] = self.args.debug
 
