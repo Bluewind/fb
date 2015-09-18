@@ -320,8 +320,10 @@ class ConfigParser:
         return self.config
 
 class FBClient:
-    # TODO: update version with sed
-    version = "2.0.alpha"
+    version = "@VERSION@"
+    if version.startswith('@'):
+        version = 'unknown-version'
+
     modes = Enum("modes", [
             "upload",
             "delete",
