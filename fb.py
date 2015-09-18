@@ -408,10 +408,12 @@ class FBClient:
             functions[self.args.mode]()
 
     def makedirs(self, path):
+        dirname = os.path.dirname(path)
         try:
-            os.makedirs(os.path.dirname(path))
+            os.makedirs(dirname)
         except OSError as e:
-            # FIXME: only catch dir already exists error
+            if not (os.path.exists(dirname) and os.path.isdir(dirname)):
+                raise
             pass
 
     def create_temp_copy_path(self, file):
