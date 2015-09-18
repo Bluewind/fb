@@ -2,49 +2,32 @@ VERSION:=$(shell git describe --dirty | sed 's/^v//; s/-/./g')
 PREFIX=/usr
 MANDIR=$(PREFIX)/share/man
 BINDIR=$(PREFIX)/bin
-LIBDIR=$(PREFIX)/lib
-MY_LIBDIR=$(LIBDIR)/fb-client
-CC?=cc
-CFLAGS:=-std=c99 -O2 -Wall -Wextra -pedantic $(CFLAGS)
-LIBCURL:=$(shell pkg-config --silence-errors --libs --cflags libcurl)
 
-ifdef LIBCURL
-all: fb fb-helper
-else
 all: fb
-endif
 
-fb: fb.in
+fb: fb.py
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
-	sed 's|@VERSION@|$(VERSION)|; s|@LIBDIR@|$(MY_LIBDIR)|' $< > $@
+	sed 's|@VERSION@|$(VERSION)|' $< > $@
 	chmod 755 $@
 
-fb-helper: fb-helper.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -DVERSION=\"$(VERSION)\" -o $@ $< $(LIBCURL)
-
 clean:
-	rm -f fb fb-helper
+	rm -f fb
 	rm -rf dist
 
 install: all
 	install -dm755 $(DESTDIR)$(BINDIR)
 	install -m755 fb $(DESTDIR)$(BINDIR)/fb
-ifdef LIBCURL
-	install -dm755 $(DESTDIR)$(MY_LIBDIR)
-	install -m755 fb-helper $(DESTDIR)$(MY_LIBDIR)/fb-helper
-endif
 	install -dm755 $(DESTDIR)$(MANDIR)/man1
 	install -m644 fb.1 $(DESTDIR)$(MANDIR)/man1/fb.1
 
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/fb
-	rm -rf $(DESTDIR)$(MY_LIBDIR)
 	rm -f $(DESTDIR)$(MANDIR)/man1/fb.1
 
 dist: all
 	@[ -n "$(VERSION)" ] || (echo "Error: version detection failed"; exit 1)
 	mkdir -p dist/fb-$(VERSION)
-	cp -a fb-helper.c fb{,.in} fb.1 COPYING Makefile dist/fb-$(VERSION)
+	cp -a fb{,.py} fb.1 COPYING Makefile dist/fb-$(VERSION)
 	sed -i 's/^VERSION:=.*$$/VERSION:='$(VERSION)'/' dist/fb-$(VERSION)/Makefile
 	cd dist; tar -czf fb-$(VERSION).tar.gz fb-$(VERSION)
 
