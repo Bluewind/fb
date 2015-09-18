@@ -38,6 +38,22 @@ def print_table(table):
         print("| " + " | ".join("{:{}}".format(x, col_width[i])
                                 for i, x in enumerate(line)) + " |")
 
+def humanize_bytes(num):
+    suffix = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]
+    boundary = 2048.0
+
+    for unit in suffix:
+        if abs(num) < boundary:
+            break
+        num /= 1024.0
+
+    if unit == "B":
+        format = "%.0f%s"
+    else:
+        format = "%.2f%s"
+
+    return format % (num, unit)
+
 @contextlib.contextmanager
 def make_temp_directory():
     temp_dir = tempfile.mkdtemp()
@@ -592,8 +608,8 @@ class FBClient:
             i['mimetype'],
             datetime.datetime.fromtimestamp(int(i['date'])).strftime(timeFormat),
             i['hash'],
-            i['filesize'
-                ]] for i in items]
+            humanize_bytes(int(i['filesize']))
+                ] for i in items]
         print_table(itemsTable)
 
     def display_version(self):
