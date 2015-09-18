@@ -5,6 +5,7 @@ import argparse
 import collections
 import contextlib
 import datetime
+import errno
 import getpass
 import json
 import locale
@@ -464,8 +465,15 @@ class FBClient:
             self.setClipboard(' '.join(urls))
 
     def setClipboard(self, content):
-        p = subprocess.Popen([self.config['clipboard_cmd']], stdin=subprocess.PIPE)
-        p.communicate(input=content.encode('utf-8'))
+        try:
+            p = subprocess.Popen([self.config['clipboard_cmd']], stdin=subprocess.PIPE)
+            p.communicate(input=content.encode('utf-8'))
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                return
+            raise
+        except FileNotFoundError:
+            return
 
     def multipaste(self, ids):
         data = []
