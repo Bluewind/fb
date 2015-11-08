@@ -196,6 +196,26 @@ class CURLWrapper:
 
         return result["data"]
 
+    def dl_file(self, url, path):
+        # TODO: this is duplicated in __init__ (well mostly)
+        c = pycurl.Curl()
+        c.setopt(c.USERAGENT, self.config['useragent'])
+        c.setopt(c.HTTPHEADER, [
+            "Expect:",
+            ])
+
+        if self.config["debug"]:
+            c.setopt(c.VERBOSE, 1)
+
+        outfp = open(path, 'wb')
+        try:
+            c.setopt(c.URL, url)
+            c.setopt(c.WRITEDATA, outfp)
+            c.perform()
+        finally:
+            outfp.close()
+            c.close()
+
 class ProgressBar:
 
     def __init__(self):
@@ -519,6 +539,11 @@ class FBClient:
 
     def upload(self):
         if self.args.tar:
+            for arg in self.args.args:
+                if re.match('https?://', arg):
+                    sys.stderr.write("Error: --tar does not support URLs as arguments")
+                    return
+
             tarPath = os.path.join(self.tempdir, 'upload.tar')
             tar = tarfile.open(tarPath, 'w')
             for file in self.args.args:
@@ -541,8 +566,19 @@ class FBClient:
             self.upload_files([tempfile])
             return
         else:
-            self.upload_files(self.args.args)
+            # TODO: detect paste URLs and add their IDs to a multipaste
+            files = [self.dl_file(arg) for arg in self.args.args]
+            self.upload_files(files)
             return
+
+    def dl_file(self, arg):
+        if re.match('https?://', arg):
+            outfile = os.path.basename(arg)
+            self.curlw.dl_file(arg, outfile)
+            return outfile
+
+        return arg
+
 
     def extractId(self, arg):
         arg = arg.replace(self.config['pastebin'], '')
