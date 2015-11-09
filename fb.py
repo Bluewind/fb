@@ -573,7 +573,7 @@ class FBClient:
 
     def dl_file(self, arg):
         if re.match('https?://', arg):
-            outfile = os.path.basename(arg)
+            outfile = os.path.join(self.tempdir, os.path.basename(arg))
             self.curlw.dl_file(arg, outfile)
             return outfile
 
