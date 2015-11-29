@@ -222,7 +222,6 @@ class ProgressBar:
         samplecount = 20
         self.progressData = {
                 "lastUpdateTime": time.time(),
-                "lastLineLength": 0,
                 "ullast": 0,
                 "ulGlobalTotal": 0,
                 "ulGlobal": 0,
@@ -253,7 +252,7 @@ class ProgressBar:
 
         # upload complete, clean up
         if data["ulGlobal"] >= data["ulGlobalTotal"]:
-            sys.stderr.write("%s\r" % (" " * (data["lastLineLength"] + 1)))
+            sys.stderr.write("\r\033[K")
             return 0
 
         if ulnow == 0:
@@ -289,19 +288,12 @@ class ProgressBar:
             timeRemaining = (data['ulGlobalTotal'] - data['ulGlobal']) / ulspeed
             eta = self.format_time(timeRemaining)
 
-        output = "\r{}/s uploaded: {:.1f}% = {}; ETA: {}".format(
+        sys.stderr.write("\r{}/s uploaded: {:.1f}% = {}; ETA: {}\033[K".format(
                 self.format_bytes(ulspeed),
                 data['ulGlobal'] * 100 / data['ulGlobalTotal'],
                 self.format_bytes(data['ulGlobal']),
                 str(eta)
-                )
-
-        outputlen = len(output)
-        if data["lastLineLength"] > outputlen:
-            output += " " * (data["lastLineLength"] - outputlen)
-        sys.stderr.write(output)
-
-        data["lastLineLength"] = outputlen
+                ))
 
     def format_bytes(self, bytes):
         suffix = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]
