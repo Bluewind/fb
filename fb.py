@@ -574,6 +574,7 @@ class FBClient:
 
     def extractId(self, arg):
         arg = arg.replace(self.config['pastebin'], '')
+        arg = arg.strip('/')
         match = re.match('^([^/]+)', arg)
         id = match.group(0)
         return id
