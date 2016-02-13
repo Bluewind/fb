@@ -175,6 +175,7 @@ class CURLWrapper:
         self.curl.setopt(pycurl.PROGRESSFUNCTION, self.progressBar.progress)
         #self.curl.setopt(pycurl.MAX_SEND_SPEED_LARGE, 200000)
         self.curl.perform()
+
         if self.config["debug"]:
             print(b.getvalue())
 
@@ -182,6 +183,7 @@ class CURLWrapper:
 
     def perform(self):
         response = self.perform_simple()
+
         try:
             result = json.loads(response)
         except ValueError:
