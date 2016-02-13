@@ -6,8 +6,10 @@ import contextlib
 import datetime
 import errno
 import getpass
+import gzip
 import json
 import locale
+import lzma
 import os
 import pycurl
 import re
@@ -321,14 +323,18 @@ class ProgressBar:
 
 class Compressor:
     @staticmethod
-    def gzip(file):
-        subprocess.call(['gzip', '-n', file])
-        return file + '.gz'
+    def gzip(src, dst):
+        dst += '.gz'
+        with open(src, 'rb') as f_in, gzip.open(dst, 'wb') as f_out:
+            f_out.writelines(f_in)
+        return dst
 
     @staticmethod
-    def xz(file):
-        subprocess.call(['xz', file])
-        return file + '.xz'
+    def xz(src, dst):
+        dst += '.xz'
+        with open(src, 'rb') as f_in, lzma.open(dst, 'wb') as f_out:
+            f_out.writelines(f_in)
+        return dst
 
 class ConfigParser:
     def __init__(self, file, ignoreMissing=False):
@@ -476,9 +482,30 @@ class FBClient:
                 1: Compressor.gzip,
                 2: Compressor.xz,
             }
-            return compressor[self.args.compress](file)
+            return compressor[self.args.compress](file, self.create_temp_copy_path(file))
         else:
             return file
+
+    def handle_directory(self, path):
+        if os.path.isdir(path):
+            return self.create_tarball(path)
+
+        return path
+
+    def create_tarball(self, path):
+        compression = {
+                0: "",
+                1: "gz",
+                2: "xz",
+                }
+        extension = "." + '.'.join(["tar", compression[self.args.compress]])
+        tarball_path = os.path.normpath(self.tempdir + "/" + self.args.name + extension)
+        tar = tarfile.open(tarball_path, "w:" + compression[self.args.compress])
+        tar.add(path)
+        tar.close()
+
+        return tarball_path
+
 
     def create_temp_copy(self, file):
         dest = self.create_temp_copy_path(file)
@@ -497,7 +524,12 @@ class FBClient:
             if os.stat(file)[6] == 0:
                 file = self.create_temp_copy(file)
 
-            upload_files.append(self.handle_compression(file))
+            if os.path.isdir(file):
+                file = self.create_tarball(file)
+            else:
+                file = self.handle_compression(file)
+
+            upload_files.append(file)
 
         resp = self.curlw.upload_files(upload_files)
         ids = resp["ids"]
