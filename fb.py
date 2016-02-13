@@ -14,6 +14,7 @@ import os
 import pycurl
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tarfile
@@ -397,6 +398,7 @@ class FBClient:
         self.config["useragent"] = "fb-client/%s" % self.version
 
     def run(self):
+        signal.signal(signal.SIGINT, self.handle_ctrl_c)
         defaultConfigFile = os.path.join(xdg.BaseDirectory.xdg_config_home, 'fb-client/config')
 
         parser = argparse.ArgumentParser(
@@ -461,6 +463,10 @@ class FBClient:
 
         with make_temp_directory() as self.tempdir:
             functions[self.args.mode]()
+
+    def handle_ctrl_c(self, signal, frame):
+        print("\nReceived signal, aborting!")
+        sys.exit(1)
 
     def makedirs(self, path):
         dirname = os.path.dirname(path)
