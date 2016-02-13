@@ -426,6 +426,8 @@ class FBClient:
                 help="Enable debug output")
 
         upload_options = parser.add_argument_group('upload options')
+        upload_options.add_argument("-i", "--id", default=False, action="store_true",
+                help="Interpret arguments as IDs")
         upload_options.add_argument("-t", "--tar", default=False, action="store_true",
                 help="Upload a tar file containing all files (and directories)")
         upload_options.add_argument("-m", "--multipaste", default=False, action="store_true",
@@ -598,6 +600,10 @@ class FBClient:
             self.upload_files([tempfile])
             return
         else:
+            if self.args.id:
+                ids = [self.extractId(arg) for arg in self.args.args]
+                return self.multipaste(ids)
+
             # TODO: detect paste URLs and add their IDs to a multipaste
             files = [self.dl_file(arg) for arg in self.args.args]
             self.upload_files(files)
