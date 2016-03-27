@@ -609,7 +609,6 @@ class FBClient:
                 ids = [self.extractId(arg) for arg in self.args.args]
                 return self.multipaste(ids)
 
-            # TODO: detect paste URLs and add their IDs to a multipaste
             files = [self.containerize_arg(arg) for arg in self.args.args]
             self.upload_files(files)
             return
