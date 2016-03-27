@@ -109,37 +109,42 @@ class CURLWrapper:
             self.getServerConfig()
 
         for file in files:
-            filesize = os.stat(file).st_size
-            totalSize += filesize
-            if  filesize > self.config["warnsize"]:
-                self.getServerConfig()
-                if filesize > self.serverConfig["upload_max_size"]:
-                    raise APIException("File too big")
+            if file.should_upload():
+                filesize = os.stat(file.path).st_size
+                totalSize += filesize
+                if  filesize > self.config["warnsize"]:
+                    self.getServerConfig()
+                    if filesize > self.serverConfig["upload_max_size"]:
+                        raise APIException("File too big")
 
-            if self.serverConfig is not None and (currentChunkSize + filesize > self.serverConfig["request_max_size"] \
-                    or len(chunks[currentChunk]) >= self.serverConfig["max_files_per_request"]):
-                currentChunkSize = 0
-                currentChunk += 1
-                chunks.append([])
-            chunks[currentChunk].append(file)
-            currentChunkSize += filesize
+                if self.serverConfig is not None and (currentChunkSize + filesize > self.serverConfig["request_max_size"] \
+                        or len(chunks[currentChunk]) >= self.serverConfig["max_files_per_request"]):
+                    currentChunkSize = 0
+                    currentChunk += 1
+                    chunks.append([])
+                chunks[currentChunk].append(file)
+                currentChunkSize += filesize
 
         self.progressBar.set_ulglobal(totalSize)
 
         for chunk in chunks:
             counter = 0
-            for file in chunk:
-                counter+=1
-                self.post.append(
-                    ("file["+str(counter)+"]", (pycurl.FORM_FILE, file))
-                    )
-            ret = self.send_post_progress("/file/upload", [])
-            rets["ids"] += ret["ids"]
-            rets["urls"] += ret["urls"]
+            if chunk:
+                for file in chunk:
+                    counter+=1
+                    self.post.append(
+                        ("file["+str(counter)+"]", (pycurl.FORM_FILE, file.path))
+                        )
+                ret = self.send_post_progress("/file/upload", [])
+                rets["ids"] += ret["ids"]
+                rets["urls"] += ret["urls"]
+                for new_id, new_url, existing in zip(ret["ids"], ret["urls"], [a for a in files if a.should_upload()]):
+                    existing.id = new_id
+                    existing.url = new_url
 
         self.progressBar.reset()
 
-        return rets
+        return files
 
     def send_get(self, url):
         self.curl.setopt(pycurl.URL, self.config["api_url"] + url)
@@ -527,27 +532,27 @@ class FBClient:
         urls = []
         upload_files = []
         for file in files:
-            if not os.path.exists(file):
-                sys.stderr.write("Error: File \"%s\" is not readable/not found.\n" % file)
-                return
+            if file.should_upload():
+                if not os.path.exists(file.path):
+                    sys.stderr.write("Error: File \"%s\" is not readable/not found.\n" % file.path)
+                    return
 
-            if os.stat(file)[6] == 0:
-                file = self.create_temp_copy(file)
+                if os.stat(file.path)[6] == 0:
+                    file = self.create_temp_copy(file.path)
 
-            if os.path.isdir(file):
-                file = self.create_tarball(file)
-            else:
-                file = self.handle_compression(file)
+                if os.path.isdir(file.path):
+                    file.path = self.create_tarball(file.path)
+                else:
+                    file.path = self.handle_compression(file.path)
 
             upload_files.append(file)
 
         resp = self.curlw.upload_files(upload_files)
-        ids = resp["ids"]
-        urls = resp["urls"]
 
-        if self.args.multipaste or len(ids) > 1:
-            self.multipaste(ids)
+        if self.args.multipaste or len(resp) > 1:
+            self.multipaste([f.id for f in resp])
         else:
+            urls = [f.url for f in resp]
             for url in urls:
                 print(url)
             self.setClipboard(' '.join(urls))
@@ -583,7 +588,7 @@ class FBClient:
             for file in self.args.args:
                 tar.add(file)
             tar.close()
-            self.upload_files([tarPath])
+            self.upload_files([File(tarPath)])
             return
 
         if not self.args.args:
@@ -597,7 +602,7 @@ class FBClient:
                 sys.exit(130)
             finally:
                 f.close()
-            self.upload_files([tempfile])
+            self.upload_files([File(tempfile)])
             return
         else:
             if self.args.id:
@@ -610,12 +615,18 @@ class FBClient:
             return
 
     def dl_file(self, arg):
+        if re.match('id://', arg):
+            id = arg.replace('id://', '')
+            return Paste(id)
+        if arg.startswith(self.config['pastebin']):
+            return Paste(self.extractId(arg))
         if re.match('https?://', arg):
+            # FIXME: this does not work with URLs ending in / and it does not use content-disposition
             outfile = os.path.join(self.tempdir, os.path.basename(arg))
             self.curlw.dl_file(arg, outfile)
-            return outfile
+            return File(outfile)
 
-        return arg
+        return File(arg)
 
 
     def extractId(self, arg):
@@ -713,6 +724,21 @@ class FBClient:
 
         self.makedirs(os.path.dirname(self.config['apikey_file']))
         open(self.config['apikey_file'], 'w').write(resp['new_key'])
+
+class File:
+    path = None
+    id = None
+    paste_url = None
+
+    def __init__(self, path):
+        self.path = path
+
+    def should_upload(self):
+        return self.id is None
+
+class Paste(File):
+    def __init__(self, id):
+        self.id = id
 
 if __name__ == '__main__':
     try:
