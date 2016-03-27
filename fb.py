@@ -620,7 +620,6 @@ class FBClient:
         if arg.startswith(self.config['pastebin']):
             return Paste(self.extractId(arg))
         if re.match('https?://', arg):
-            # FIXME: this does not work with URLs ending in / and it does not use content-disposition
             outfile = os.path.join(self.tempdir, os.path.basename(arg.strip("/")))
             self.curlw.dl_file(arg, outfile)
             return File(outfile)
