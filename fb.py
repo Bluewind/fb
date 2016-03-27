@@ -115,7 +115,7 @@ class CURLWrapper:
                 if  filesize > self.config["warnsize"]:
                     self.getServerConfig()
                     if filesize > self.serverConfig["upload_max_size"]:
-                        raise APIException("File too big")
+                        raise APIException("File too big: %s" % (file.path))
 
                 if self.serverConfig is not None and (currentChunkSize + filesize > self.serverConfig["request_max_size"] \
                         or len(chunks[currentChunk]) >= self.serverConfig["max_files_per_request"]):
