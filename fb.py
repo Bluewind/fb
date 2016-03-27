@@ -610,11 +610,11 @@ class FBClient:
                 return self.multipaste(ids)
 
             # TODO: detect paste URLs and add their IDs to a multipaste
-            files = [self.dl_file(arg) for arg in self.args.args]
+            files = [self.containerize_arg(arg) for arg in self.args.args]
             self.upload_files(files)
             return
 
-    def dl_file(self, arg):
+    def containerize_arg(self, arg):
         if re.match('id://', arg):
             id = arg.replace('id://', '')
             return Paste(id)
