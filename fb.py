@@ -616,9 +616,9 @@ class FBClient:
     def containerize_arg(self, arg):
         if re.match('id://', arg):
             id = arg.replace('id://', '')
-            return Paste(id)
+            return File(id=id)
         if arg.startswith(self.config['pastebin']):
-            return Paste(self.extractId(arg))
+            return File(id=self.extractId(arg))
         if re.match('https?://', arg):
             outfile = os.path.join(self.tempdir, os.path.basename(arg.strip("/")))
             self.curlw.dl_file(arg, outfile)
@@ -728,15 +728,12 @@ class File:
     id = None
     paste_url = None
 
-    def __init__(self, path):
+    def __init__(self, path=None, id=None):
         self.path = path
+        self.id = id
 
     def should_upload(self):
         return self.id is None
-
-class Paste(File):
-    def __init__(self, id):
-        self.id = id
 
 if __name__ == '__main__':
     try:
