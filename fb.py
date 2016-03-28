@@ -138,7 +138,7 @@ class CURLWrapper:
                 ret = self.send_post_progress("/file/upload", [])
                 rets["ids"] += ret["ids"]
                 rets["urls"] += ret["urls"]
-                for new_id, new_url, existing in zip(ret["ids"], ret["urls"], [a for a in files if a.should_upload()]):
+                for new_id, new_url, existing in zip(ret["ids"], ret["urls"], chunk):
                     existing.id = new_id
                     existing.url = new_url
 
