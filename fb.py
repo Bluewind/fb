@@ -97,6 +97,14 @@ class CURLWrapper:
         return self.serverConfig
 
     def upload_files(self, files):
+        """
+        Upload files if f.should_upload() for f in files is true.
+
+        Args:
+            files: List of File objects
+        Returns:
+            List of updated File objects
+        """
         totalSize = 0
         chunks = [[]]
         currentChunkSize = 0
