@@ -69,7 +69,7 @@ before it's output to stdout.
 .It Fl d, -delete
 Delete the IDs. You can no longer upload files in this mode. If the argument is a URL,
 .Nm
-will try to extract the ID.
+will try to extract the ID. This option also accepts IDs without the "id://" prefix.
 .It Fl -config Ar <config file>
 Use an alternative configuration file. The default value is "$XDG_CONFIG_HOME/fb-client/config".
 .It Fl e Ar extension, Fl -extension Ar extension
@@ -94,9 +94,8 @@ will try to extract the ID. This option also accepts IDs without the "id://" pre
 Create a multipaste of the IDs/files/directories/URLs. This uploads files as
 always, but then creates a multipaste combining all of them. URLs starting with
 the pastebin URL will have their ID extracted and will not be downloaded. Only
-the multipaste URL will be copied to the clipboard, but all URLs will be
-displayed while uploading. This option is enabled automatically if multiple
-files are uploaded.
+the multipaste URL will be displayed and copied to the clipboard. This option
+is enabled automatically if multiple files are uploaded.
 .It Fl h, -help
 Display a short help message.
 .It Fl t, -tar
@@ -111,7 +110,7 @@ Display debugging information.
 .Sh CONFIGURATION FILES
 .Bl -tag
 .It $XDG_CONFIG_HOME/fb-client/apikey
-This file contains the API key to use for authentication. If this file exists, netrc authentication will be disabled.
+This file contains the API key to use for authentication.
 .It $XDG_CONFIG_HOME/fb-client/config
 This file allows to override certain variables by using the format 'option_name="value"'.
 Both, the option value and name, are case-sensitive string literals.
