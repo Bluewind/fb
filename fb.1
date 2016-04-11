@@ -152,6 +152,11 @@ This will create a .tar archive containing only the directory. Both (directory a
 file) will be compressed using gzip and uploaded independently.
 .It Nm Fl cc Ar directory
 This will create a .tar archive containing only the directory and compress it using xz.
+.It Nm Ar id://1bAc directory file https://paste.xinu.at/42SomeID/ http://example.com/example.png
+This will create a multipaste containing an existing paste with the ID 1bAc, a
+tarball of the directory, the file, the existing paste 42SomeID, the file
+example.png, which will be downloaded by the client and then uploaded to the
+server.
 .It Ic make \&|\&& Nm
 This will upload the output of make (stdout and stderr) in csh and similar shells.
 .El
