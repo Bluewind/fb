@@ -453,7 +453,7 @@ class FBClient:
                 help="Compress the file being uploaded with gz or xz if used 2 times. "
                 "When used in conjunction with -g this decompresses the download")
 
-        parser.add_argument("args", metavar="ID|file|folder", nargs="*")
+        parser.add_argument("args", metavar="file|dir|id://ID|URL", nargs="*")
 
         self.args = parser.parse_args()
 
