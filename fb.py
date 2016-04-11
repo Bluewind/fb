@@ -535,6 +535,12 @@ class FBClient:
         return dest
 
     def upload_files(self, files):
+        """
+        Upload files and create multipaste if multiple files are uploaded.
+
+        Args:
+            files: List of File objects to upload
+        """
         upload_files = []
         for file in files:
             if file.should_upload():
