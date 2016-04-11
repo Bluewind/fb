@@ -535,8 +535,6 @@ class FBClient:
         return dest
 
     def upload_files(self, files):
-        ids = []
-        urls = []
         upload_files = []
         for file in files:
             if file.should_upload():
