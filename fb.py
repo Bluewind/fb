@@ -188,7 +188,6 @@ class CURLWrapper:
         self.curl.setopt(pycurl.HTTPPOST, self.post)
         self.curl.setopt(pycurl.WRITEFUNCTION, b.write)
         self.curl.setopt(pycurl.PROGRESSFUNCTION, self.progressBar.progress)
-        #self.curl.setopt(pycurl.MAX_SEND_SPEED_LARGE, 200000)
         self.curl.perform()
 
         if self.config["debug"]:
