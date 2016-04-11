@@ -161,7 +161,7 @@ class CURLWrapper:
         return self.perform()
 
     def send_get_simple(self, url):
-        self.curl.setopt(pycurl.URL, self.config["pastebin"] + url)
+        self.curl.setopt(pycurl.URL, self.config["pastebin"] + "/" + url)
         return self.perform_simple()
 
     def send_post_progress(self, url, data = []):
