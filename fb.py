@@ -561,12 +561,14 @@ class FBClient:
         resp = self.curlw.upload_files(upload_files)
 
         if self.args.multipaste or len(resp) > 1:
-            self.multipaste([f.id for f in resp])
+            resp = self.multipaste([f.id for f in resp])
+            urls = [resp["url"]]
         else:
             urls = [f.url for f in resp]
-            for url in urls:
-                print(url)
-            self.setClipboard(' '.join(urls))
+
+        for url in urls:
+            print(url)
+        self.setClipboard(' '.join(urls))
 
     def setClipboard(self, content):
         try:
@@ -585,7 +587,7 @@ class FBClient:
             data.append({"ids["+id+"]": id})
 
         resp = self.curlw.send_post("/file/create_multipaste", data)
-        print(resp["url"])
+        return resp
 
     def upload(self):
         if self.args.tar:
