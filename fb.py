@@ -239,6 +239,10 @@ class ProgressBar:
 
     def __init__(self):
         samplecount = 20
+        self.display_progress = True
+        if not sys.stderr.isatty():
+            self.display_progress = False
+
         self.progressData = {
                 "lastUpdateTime": time.time(),
                 "ullast": 0,
@@ -258,6 +262,9 @@ class ProgressBar:
     def progress(self, dltotal, dlnow, ultotal, ulnow):
         data = self.progressData
         assert data["ulGlobalTotal"] > 0
+
+        if not self.display_progress:
+            return
 
         # update values here because if we carry one progress bar over multiple
         # requests we could miss update when running after the rate limiter
