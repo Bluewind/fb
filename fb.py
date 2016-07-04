@@ -385,10 +385,11 @@ class ConfigParser:
             if ignoreMissing:
                 return
 
-        for line in fh.readlines():
-            matches = re.match('^(?P<key>[^=]+)=(?P<quotechar>"?)(?P<value>.+)(?P=quotechar)$', line)
-            if matches != None:
-                self.config[matches.group('key')] = matches.group('value')
+        with fh:
+            for line in fh:
+                matches = re.match('^(?P<key>[^=]+)=(?P<quotechar>"?)(?P<value>.+)(?P=quotechar)$', line)
+                if matches != None:
+                    self.config[matches.group('key')] = matches.group('value')
 
     def get_config(self):
         return self.config
