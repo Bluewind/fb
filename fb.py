@@ -738,7 +738,7 @@ class FBClient:
         resp = self.curlw.send_post('/user/create_apikey', data)
 
         self.makedirs(os.path.dirname(self.config['apikey_file']))
-        open(self.config['apikey_file'], 'w').write(resp['new_key'])
+        open(self.config['apikey_file'], 'w').write(resp['new_key']).close()
 
 class File:
     path = None
