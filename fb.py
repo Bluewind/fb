@@ -775,12 +775,24 @@ class FBClient:
         localuser = getpass.getuser()
         data = []
 
-        data.append({'username': self.get_input("Username: ")})
-        data.append({'password': self.get_input("Password: ", display=False)})
-        data.append({'comment': "fb-client %s@%s" % (localuser, hostname)})
-        data.append({'access_level': "apikey"})
+        while True:
+            data.append({'username': self.get_input("Username: ")})
+            data.append({'password': self.get_input("Password: ", display=False)})
+            data.append({'comment': "fb-client %s@%s" % (localuser, hostname)})
+            data.append({'access_level': "apikey"})
 
-        resp = self.curlw.send_post_noauth('/user/create_apikey', data)
+            try:
+                resp = self.curlw.send_post_noauth('/user/create_apikey', data)
+                # break out of while loop on success
+                break
+            except APIException as e:
+                if e.error_id == 'user/login-failed':
+                    eprint(e)
+                    eprint("\nPlease try again:")
+                    continue
+                else:
+                    raise
+
 
         self.makedirs(os.path.dirname(self.config['apikey_file']))
         with open(self.config['apikey_file'], 'w') as outfile:
