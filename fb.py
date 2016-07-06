@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import argparse
 import collections
 import contextlib
@@ -24,6 +25,9 @@ import xdg.BaseDirectory
 
 from io import BytesIO
 
+class ApikeyNotFoundException(Exception):
+    pass
+
 class Enum(set):
     def __getattr__(self, name):
         if name in self:
@@ -40,6 +44,10 @@ def print_table(table):
     for line in table:
         print("| " + " | ".join("{:{}}".format(x, col_width[i])
                                 for i, x in enumerate(line)) + " |")
+
+# Source: http://stackoverflow.com/a/14981125
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 def humanize_bytes(num):
     suffix = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]
@@ -170,6 +178,16 @@ class CURLWrapper:
         self.curl.setopt(pycurl.NOPROGRESS, 1)
         return ret
 
+    def send_post_noauth(self, url, data = []):
+        self.curl.setopt(pycurl.URL, self.config["api_url"] + url)
+        self.curl.setopt(pycurl.POST, 1)
+        self.__add_post(data)
+
+        ret = self.perform()
+        self.post = []
+        return ret
+
+
     def send_post(self, url, data = []):
         self.curl.setopt(pycurl.URL, self.config["api_url"] + url)
         self.curl.setopt(pycurl.POST, 1)
@@ -181,6 +199,7 @@ class CURLWrapper:
         return ret
 
     def addAPIKey(self):
+        assert self.config['apikey']
         self.__add_post([{"apikey": self.config["apikey"]}])
 
     def perform_simple(self):
@@ -411,6 +430,12 @@ class FBClient:
     def __init__(self):
         pass
 
+    def loadConfig(self):
+        if self.args.config is None:
+            self.parseConfig(defaultConfigFile, ignoreMissing=True)
+        else:
+            self.parseConfig(self.args.config)
+
     def parseConfig(self, file, ignoreMissing=False):
         c = ConfigParser(file, ignoreMissing=ignoreMissing)
         self.config = c.get_config()
@@ -418,8 +443,16 @@ class FBClient:
         self.config["warnsize"] = 10*1024*1024
         self.config["min_files_per_request_default"] = 5
         self.config["min_variables_per_request_default"] = 20
-        self.config["apikey"] = open(self.config["apikey_file"]).read()
         self.config["useragent"] = "fb-client/%s" % self.version
+
+        # this needs to be at the end because during handling of the exception
+        # the values above are used
+        try:
+            with open(self.config["apikey_file"]) as apikeyfile:
+                self.config["apikey"] = apikeyfile.read()
+        except FileNotFoundError:
+            raise ApikeyNotFoundException()
+
 
     def run(self):
         signal.signal(signal.SIGINT, self.handle_ctrl_c)
@@ -465,10 +498,20 @@ class FBClient:
 
         self.args = parser.parse_args()
 
-        if self.args.config is None:
-            self.parseConfig(defaultConfigFile, ignoreMissing=True)
-        else:
-            self.parseConfig(self.args.config)
+        try:
+            self.loadConfig()
+        except ApikeyNotFoundException:
+            if self.args.mode != self.modes.create_apikey:
+                if sys.stdin.isatty():
+                    eprint("No API key found, creating a new one")
+                    self.config["debug"] = self.args.debug
+                    self.curlw = CURLWrapper(self.config)
+                    self.create_apikey()
+                    self.curlw = None
+                    self.loadConfig()
+                else:
+                    eprint("No API key found. Please run fb -a to create one")
+                    sys.exit(1)
 
         self.config["debug"] = self.args.debug
 
@@ -735,10 +778,11 @@ class FBClient:
         data.append({'comment': "fb-client %s@%s" % (localuser, hostname)})
         data.append({'access_level': "apikey"})
 
-        resp = self.curlw.send_post('/user/create_apikey', data)
+        resp = self.curlw.send_post_noauth('/user/create_apikey', data)
 
         self.makedirs(os.path.dirname(self.config['apikey_file']))
-        open(self.config['apikey_file'], 'w').write(resp['new_key']).close()
+        with open(self.config['apikey_file'], 'w') as outfile:
+            outfile.write(resp['new_key'])
 
 class File:
     path = None
