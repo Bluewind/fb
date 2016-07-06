@@ -74,7 +74,9 @@ def make_temp_directory():
         shutil.rmtree(temp_dir)
 
 class APIException(Exception):
-    pass
+    def __init__(self, message, error_id):
+        super().__init__(message)
+        self.error_id = error_id
 
 class CURLWrapper:
     def __init__(self, config):
@@ -131,7 +133,7 @@ class CURLWrapper:
                 if  filesize > self.config["warnsize"]:
                     self.getServerConfig()
                     if filesize > self.serverConfig["upload_max_size"]:
-                        raise APIException("File too big: %s" % (file.path))
+                        raise APIException("File too big: %s" % (file.path), "client-internal/file-too-big")
 
                 if self.serverConfig is not None and (currentChunkSize + filesize > self.serverConfig["request_max_size"] \
                         or len(chunks[currentChunk]) >= self.serverConfig["max_files_per_request"]):
@@ -220,16 +222,16 @@ class CURLWrapper:
         try:
             result = json.loads(response)
         except ValueError:
-            raise APIException("Invalid response:\n%s" % response)
+            raise APIException("Invalid response:\n%s" % response, "client-internal/invalid-response")
 
         if result["status"] == "error":
-            raise APIException("Request failed: %s" % result["message"])
+            raise APIException("Request failed: %s" % result["message"], result['error_id'])
         if result["status"] != "success":
-            raise APIException("Request failed or invalid response")
+            raise APIException("Request failed or invalid response", "client-internal/invalid-response")
 
         httpcode = self.curl.getinfo(pycurl.HTTP_CODE)
         if httpcode != 200:
-            raise APIException("Invalid HTTP response code: %s" % httpcode)
+            raise APIException("Invalid HTTP response code: %s" % httpcode, "client-internal/invalid-response")
 
 
         return result["data"]
