@@ -737,6 +737,12 @@ class FBClient:
         items = list(items.values())
         multipasteItems = list(multipasteItems.values())
 
+        uniqueSize = dict()
+        for item in items:
+            uniqueSize[item['hash']] = int(item['filesize'])
+
+        totalSize = sum([v for v in uniqueSize.values()])
+
         for item in multipasteItems:
             item['id'] = item['url_id']
             item['filename'] = '%s file(s)' % (len(item['items']))
@@ -758,6 +764,11 @@ class FBClient:
             humanize_bytes(int(i['filesize']))
                 ] for i in items]
         print_table(itemsTable)
+
+        print("\n")
+        print("Total sum of your distinct uploads: %s" % (humanize_bytes(totalSize)))
+        print("Total number of uploads (excluding multipastes): %s" % (len(resp['items'])))
+        print("Total number of multipastes: %s" % (len(multipasteItems)))
 
     def display_version(self):
         print(self.version)
