@@ -794,7 +794,7 @@ class FBClient:
                     raise
 
 
-        self.makedirs(os.path.dirname(self.config['apikey_file']))
+        self.makedirs(self.config['apikey_file'])
         with open(self.config['apikey_file'], 'w') as outfile:
             outfile.write(resp['new_key'])
 
