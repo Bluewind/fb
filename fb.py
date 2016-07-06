@@ -433,6 +433,8 @@ class FBClient:
         pass
 
     def loadConfig(self):
+        defaultConfigFile = os.path.join(xdg.BaseDirectory.xdg_config_home, 'fb-client/config')
+
         if self.args.config is None:
             self.parseConfig(defaultConfigFile, ignoreMissing=True)
         else:
@@ -458,7 +460,6 @@ class FBClient:
 
     def run(self):
         signal.signal(signal.SIGINT, self.handle_ctrl_c)
-        defaultConfigFile = os.path.join(xdg.BaseDirectory.xdg_config_home, 'fb-client/config')
 
         parser = argparse.ArgumentParser(
                 description="Upload/nopaste file(s)/stdin to paste.xinu.at and copy URL(s) to clipboard.")
