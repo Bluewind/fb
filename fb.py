@@ -603,7 +603,7 @@ class FBClient:
                     return
 
                 if os.stat(file.path)[6] == 0:
-                    file = self.create_temp_copy(file.path)
+                    file.path = self.create_temp_copy(file.path)
 
                 if os.path.isdir(file.path):
                     file.path = self.create_tarball(file.path)
