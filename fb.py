@@ -99,7 +99,7 @@ class CURLWrapper:
     def __add_post(self, data):
         for item in data:
             for key, value in item.items():
-                self.post.append((key, (pycurl.FORM_CONTENTS, value)))
+                self.post.append((key, (pycurl.FORM_CONTENTS, value.encode('utf-8'))))
 
     def getServerConfig(self):
         if self.serverConfig is None:
@@ -151,7 +151,7 @@ class CURLWrapper:
                 for file in chunk:
                     counter+=1
                     self.post.append(
-                        ("file["+str(counter)+"]", (pycurl.FORM_FILE, file.path))
+                        ("file["+str(counter)+"]", (pycurl.FORM_FILE, file.path.encode('utf-8')))
                         )
                 ret = self.send_post_progress("/file/upload", [])
                 rets["ids"] += ret["ids"]
