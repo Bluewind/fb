@@ -662,9 +662,9 @@ class FBClient:
             tempfile = os.path.join(self.tempdir, os.path.basename(self.args.name))
             if sys.stdin.isatty():
                 print("^C to exit, ^D to send")
-            f = open(tempfile, "w")
+            f = open(tempfile, "wb")
             try:
-                f.write(sys.stdin.read())
+                f.write(sys.stdin.buffer.read())
             except KeyboardInterrupt:
                 sys.exit(130)
             finally:
