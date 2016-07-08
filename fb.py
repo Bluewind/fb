@@ -277,12 +277,12 @@ class ProgressBar:
         self.progressData["ulGlobalTotal"] = value
 
     def reset(self):
-        self.progressData["ulGlobalTotal"] = 0
+        self.progressData["ulGlobalTotal"] = -1
         self.progressData["ulGlobal"] = 0
 
     def progress(self, dltotal, dlnow, ultotal, ulnow):
         data = self.progressData
-        assert data["ulGlobalTotal"] > 0
+        assert data["ulGlobalTotal"] > -1
 
         if not self.display_progress:
             return
