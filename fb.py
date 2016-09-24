@@ -626,8 +626,9 @@ class FBClient:
 
     def setClipboard(self, content):
         try:
-            p = subprocess.Popen([self.config['clipboard_cmd']], stdin=subprocess.PIPE)
-            p.communicate(input=content.encode('utf-8'))
+            with open('/dev/null', 'w') as devnull:
+                p = subprocess.Popen([self.config['clipboard_cmd']], stdin=subprocess.PIPE, stdout=devnull, stderr=devnull)
+                p.communicate(input=content.encode('utf-8'))
         except OSError as e:
             if e.errno == errno.ENOENT:
                 return
