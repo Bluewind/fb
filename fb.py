@@ -397,14 +397,11 @@ class ConfigParser:
     def _parse(self, file, ignoreMissing=False):
         try:
             fh = open(file)
-        except OSError as e:
+        except IOError as e:
             if ignoreMissing:
                 if e.errno == errno.ENOENT:
                     return
             raise
-        except FileNotFoundError:
-            if ignoreMissing:
-                return
 
         with fh:
             for line in fh:
