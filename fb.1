@@ -7,11 +7,9 @@
 .Dd April 11, 2016
 .Dt FB 1
 .Os
-
 .Sh NAME
 .Nm fb
 .Nd a client for https://paste.xinu.at
-
 .Sh SYNOPSIS
 .Nm
 .Op options
@@ -22,7 +20,6 @@
 .Ar ID|URL ...
 .Nm
 .Op Fl hv
-
 .Sh DESCRIPTION
 .Nm
 is a client to https://paste.xinu.at which allows the user to easily upload,
@@ -54,7 +51,6 @@ If you want to use paste.xinu.at, you need to create an account there and then r
 to create an API key.
 .Pp
 IDs of existing pastes can either be given as URLs pointing to that paste or by prefixing the ID with "id://".
-
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl c, -compress
@@ -106,7 +102,6 @@ Display the client version.
 .It Fl D, -debug
 Display debugging information.
 .El
-
 .Sh CONFIGURATION FILES
 .Bl -tag
 .It $XDG_CONFIG_HOME/fb-client/apikey
@@ -126,7 +121,6 @@ The command used to copy URLs of uploaded files to the clipboard. This defaults 
 The file that contains the API key. This defaults to "$XDG_CONFIG_HOME/fb-client/apikey"
 .El
 .El
-
 .Sh ENVIRONMENT
 Some options can be changed by modifying environment variables:
 .Bl -tag -width XZ_OPTS
@@ -141,7 +135,6 @@ Setting TMPDIR to some directory where
 .Nm
 creates temporary files inside this directory rather than the system default.
 .El
-
 .Sh EXAMPLES
 .Bl -tag
 .It Nm Fl tc Ar directory file
@@ -160,7 +153,6 @@ server.
 .It Ic make \&|\&& Nm
 This will upload the output of make (stdout and stderr) in csh and similar shells.
 .El
-
 .Sh SEE ALSO
 .Xr curl 1 ,
 .Xr gzip 1 ,
