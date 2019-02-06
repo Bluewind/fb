@@ -609,6 +609,9 @@ class FBClient:
 
             upload_files.append(file)
 
+        if len(upload_files) == 1 and not upload_files[0].should_upload():
+            upload_files[0] = self.url_to_file(self.config['pastebin']+'/'+upload_files[0].id)
+
         resp = self.curlw.upload_files(upload_files)
 
         if self.args.multipaste or len(resp) > 1:
