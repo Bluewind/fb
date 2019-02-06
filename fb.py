@@ -611,7 +611,10 @@ class FBClient:
             upload_files.append(file)
 
         if len(upload_files) == 1 and not upload_files[0].should_upload():
-            upload_files[0] = self.url_to_file(self.config['pastebin']+'/'+upload_files[0].id)
+            filename = None
+            if self.args.name != FBClient.DEFAULT_NAME:
+                filename = self.args.name
+            upload_files[0] = self.url_to_file(self.config['pastebin']+'/'+upload_files[0].id, filename)
 
         resp = self.curlw.upload_files(upload_files)
 
@@ -689,8 +692,10 @@ class FBClient:
 
         return File(arg)
 
-    def url_to_file(self, url):
-        outfile = os.path.join(self.tempdir, os.path.basename(url.strip("/")))
+    def url_to_file(self, url, filename=None):
+        if filename is None:
+            filename = os.path.basename(url.strip("/"))
+        outfile = os.path.join(self.tempdir, filename)
         self.curlw.dl_file(url, outfile)
         return File(outfile)
 
