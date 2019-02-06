@@ -681,12 +681,14 @@ class FBClient:
         if arg.startswith(self.config['pastebin']):
             return File(id=self.extractId(arg))
         if re.match('https?://', arg):
-            outfile = os.path.join(self.tempdir, os.path.basename(arg.strip("/")))
-            self.curlw.dl_file(arg, outfile)
-            return File(outfile)
+            return self.url_to_file(arg)
 
         return File(arg)
 
+    def url_to_file(self, url):
+        outfile = os.path.join(self.tempdir, os.path.basename(url.strip("/")))
+        self.curlw.dl_file(url, outfile)
+        return File(outfile)
 
     def extractId(self, arg):
         arg = arg.replace(self.config['pastebin'], '')
