@@ -413,6 +413,7 @@ class ConfigParser:
         return self.config
 
 class FBClient:
+    DEFAULT_NAME = 'stdin'
     version = "@VERSION@"
     if version.startswith('@'):
         version = 'unknown-version'
@@ -485,7 +486,7 @@ class FBClient:
                 help="Upload a tar file containing all files (and directories)")
         upload_options.add_argument("-m", "--multipaste", default=False, action="store_true",
                 help="create a multipaste")
-        upload_options.add_argument("-n", "--name", default="stdin", action="store",
+        upload_options.add_argument("-n", "--name", default=FBClient.DEFAULT_NAME, action="store",
                 help="File name to use for upload when reading from stdin (default: stdin)")
         upload_options.add_argument("-e", "--extension", default="", action="store",
                 help="extension for default highlighting (e.g. \"diff\")")
