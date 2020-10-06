@@ -79,7 +79,7 @@ class APIException(Exception):
         self.error_id = error_id
 
 class CURLWrapper:
-    def __init__(self, config):
+    def __init__(self, config, args):
         c = pycurl.Curl()
         c.setopt(c.USERAGENT, config['useragent'])
         c.setopt(c.HTTPHEADER, [
@@ -91,6 +91,7 @@ class CURLWrapper:
             c.setopt(c.VERBOSE, 1)
 
         self.config = config
+        self.args = args
         self.curl = c
         self.post = []
         self.progressBar = ProgressBar()
@@ -125,6 +126,9 @@ class CURLWrapper:
                 }
         if len(files) > self.config["min_files_per_request_default"]:
             self.getServerConfig()
+
+        if self.args.min_id_length:
+            self.post.append(("minimum-id-length", self.args.min_id_length))
 
         for file in files:
             if file.should_upload():
@@ -194,6 +198,9 @@ class CURLWrapper:
         self.curl.setopt(pycurl.URL, self.config["api_url"] + url)
         self.curl.setopt(pycurl.POST, 1)
         self.__add_post(data)
+
+        if self.args.min_id_length:
+            self.post.append(("minimum-id-length", self.args.min_id_length))
 
         self.addAPIKey()
         ret = self.perform()
@@ -441,7 +448,7 @@ class FBClient:
     def parseConfig(self, file, ignoreMissing=False):
         c = ConfigParser(file, ignoreMissing=ignoreMissing)
         self.config = c.get_config()
-        self.config["api_url"] = self.config["pastebin"]+"/api/v2.0.0"
+        self.config["api_url"] = self.config["pastebin"]+"/api/v2.2.0"
         self.config["warnsize"] = 10*1024*1024
         self.config["min_files_per_request_default"] = 5
         self.config["min_variables_per_request_default"] = 20
@@ -490,6 +497,8 @@ class FBClient:
                 help="File name to use for upload when reading from stdin (default: stdin)")
         upload_options.add_argument("-e", "--extension", default="", action="store",
                 help="extension for default highlighting (e.g. \"diff\")")
+        upload_options.add_argument("-M", "--min-id-length", default="", action="store",
+                help="minimum length for the generated ID in the paste url")
 
         parser.add_argument("-c", "--compress", default=0, action="count",
                 help="Compress the file being uploaded with gz or xz if used 2 times. "
@@ -516,7 +525,7 @@ class FBClient:
 
         self.config["debug"] = self.args.debug
 
-        self.curlw = CURLWrapper(self.config)
+        self.curlw = CURLWrapper(self.config, self.args)
 
         functions = {
                 self.modes.upload: self.upload,

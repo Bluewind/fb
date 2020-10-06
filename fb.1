@@ -92,6 +92,9 @@ always, but then creates a multipaste combining all of them. URLs starting with
 the pastebin URL will have their ID extracted and will not be downloaded. Only
 the multipaste URL will be displayed and copied to the clipboard. This option
 is enabled automatically if multiple files are uploaded.
+.It Fl M Ar <length>, Fl -min-id-length Ar <length>
+Request the server to generate IDs of at least <length> characters. The minimum
+supported length are two characters.
 .It Fl h, -help
 Display a short help message.
 .It Fl t, -tar
