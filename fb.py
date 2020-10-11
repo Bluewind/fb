@@ -107,6 +107,12 @@ class CURLWrapper:
             self.serverConfig = CURLWrapper(self.config, self.args).send_get("/file/get_config")
         return self.serverConfig
 
+    def getApiUrl(self):
+        if self.args.min_id_length:
+            return self.config["pastebin"]+"/api/v2.2.0"
+        else:
+            return self.config["pastebin"]+"/api/v2.0.0"
+
     def upload_files(self, files):
         """
         Upload files if f.should_upload() for f in files is true.
@@ -171,7 +177,7 @@ class CURLWrapper:
         return files
 
     def send_get(self, url):
-        self.curl.setopt(pycurl.URL, self.config["api_url"] + url)
+        self.curl.setopt(pycurl.URL, self.getApiUrl() + url)
         return self.perform()
 
     def send_get_simple(self, url):
@@ -185,7 +191,7 @@ class CURLWrapper:
         return ret
 
     def send_post_noauth(self, url, data = []):
-        self.curl.setopt(pycurl.URL, self.config["api_url"] + url)
+        self.curl.setopt(pycurl.URL, self.getApiUrl() + url)
         self.curl.setopt(pycurl.POST, 1)
         self.__add_post(data)
 
@@ -195,7 +201,7 @@ class CURLWrapper:
 
 
     def send_post(self, url, data = []):
-        self.curl.setopt(pycurl.URL, self.config["api_url"] + url)
+        self.curl.setopt(pycurl.URL, self.getApiUrl() + url)
         self.curl.setopt(pycurl.POST, 1)
         self.__add_post(data)
 
@@ -448,7 +454,6 @@ class FBClient:
     def parseConfig(self, file, ignoreMissing=False):
         c = ConfigParser(file, ignoreMissing=ignoreMissing)
         self.config = c.get_config()
-        self.config["api_url"] = self.config["pastebin"]+"/api/v2.2.0"
         self.config["warnsize"] = 10*1024*1024
         self.config["min_files_per_request_default"] = 5
         self.config["min_variables_per_request_default"] = 20
