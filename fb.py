@@ -104,7 +104,7 @@ class CURLWrapper:
 
     def getServerConfig(self):
         if self.serverConfig is None:
-            self.serverConfig = CURLWrapper(self.config).send_get("/file/get_config")
+            self.serverConfig = CURLWrapper(self.config, self.args).send_get("/file/get_config")
         return self.serverConfig
 
     def upload_files(self, files):
@@ -515,7 +515,7 @@ class FBClient:
                 if sys.stdin.isatty():
                     eprint("No API key found, creating a new one")
                     self.config["debug"] = self.args.debug
-                    self.curlw = CURLWrapper(self.config)
+                    self.curlw = CURLWrapper(self.config, self.args)
                     self.create_apikey()
                     self.curlw = None
                     self.loadConfig()
