@@ -8,7 +8,10 @@ arch=("any")
 url="https://paste.xinu.at"
 license=('GPL3')
 depends=('python' 'python-pycurl' 'python-xdg')
-optdepends=('xclip: for automatically copying the URL into the clipboard')
+optdepends=(
+  'xclip: automatically copy the URL into the clipboard on X11'
+  'wl-clipboard: automatically copy the URL into the clipboard on wayland'
+)
 source=("git+https://git.server-speed.net/users/flo/fb#branch=dev")
 md5sums=('SKIP')
 validpgpkeys=("CFA6AF15E5C74149FC1D8C086D1655C14CE1C13E")

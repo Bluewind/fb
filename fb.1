@@ -38,13 +38,22 @@ If the file being uploaded is bigger than 10MiB
 .Nm
 will query the server for the maximum upload size and abort the upload if the
 file would be rejected.
+.Pp
 Before terminating,
 .Nm
-will try to copy all links into the X clipboard if
-.Xr xclip 1
-or on Darwin
-.Xr pbcopy
-is installed.
+will try to copy all links into the clipboard. Depending on the environment from
+which
+.Nm
+was executed.
+If you want this to work, you need to install the correct tool for your environment:
+.Bl -tag -width "wl-clipboard(1)" -offset indent
+.It Xr xclip 1
+when running on X11
+.It Xr wl-clipboard 1
+when running on wayland
+.It Xr pbcopy 1
+when running on Mac OS / Darwin
+.El
 .Pp
 If you want to use paste.xinu.at, you need to create an account there and then run
 .Sq Nm Fl a

@@ -401,6 +401,8 @@ class ConfigParser:
         self.config["clipboard_cmd"] = "xclip"
         if os.uname()[0] == "Darwin":
             self.config["clipboard_cmd"] = "pbcopy"
+        elif os.environ.get('XDG_SESSION_TYPE') == 'wayland':
+            self.config["clipboard_cmd"] = "wl-copy"
         self.config["apikey_file"] = os.path.join(xdg.BaseDirectory.xdg_config_home, "fb-client/apikey")
 
         self._parse(file, ignoreMissing=ignoreMissing)
