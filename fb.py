@@ -423,7 +423,7 @@ class ConfigConstraint():
 
 class ConfigParser:
 
-    MATCHER = re.compile('^(?P<key>[^=]+)=(?P<quotechar>"?)(?P<value>.+)(?P=quotechar)$')
+    MATCHER = re.compile('^(?P<key>[^=]+)=(?P<quotechar>[\'"]?)(?P<value>.+)(?P=quotechar)$')
 
     CONSTRAINTS = {
         'clipboard_target': ConfigConstraint('clipboard_target', 'enum', ('none', 'off', 'default', 'primary', 'clipboard'))
