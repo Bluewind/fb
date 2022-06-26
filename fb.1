@@ -128,7 +128,24 @@ The following option names are supported:
 .It pastebin
 The URL of the pastebin you want to use
 .It clipboard_cmd
-The command used to copy URLs of uploaded files to the clipboard. This defaults to pbcopy on Darwin and xclip otherwise.
+The command used to copy URLs of uploaded files to the clipboard.
+This defaults to
+.Xr xclip 1 on X11,
+.Xr wl-copy 1 on Wayland and
+.Xr pbcopy 1 on Mac OS / Darwin.
+.It clipboard_target
+Configure which clipboard to use. Allowed settings:
+.Bl -tag -width "none / off"
+.It default
+Use the default behavior, i.e. "primary" for X11/xclip and "clipboard" for Wayland/wl-copy.
+This is implicitly the default if not specified.
+.It none / off
+Disable copying the upload URL into the clipboard.
+.It primary
+Enforce copy into the "primary" selection (for Wayland/wl-copy).
+.It clipboard
+Enforce copy into the "clipboard" selection (for X11/xclip).
+.El
 .It apikey_file
 The file that contains the API key. This defaults to "$XDG_CONFIG_HOME/fb-client/apikey"
 .El

@@ -21,9 +21,16 @@ import sys
 import tarfile
 import tempfile
 import time
+import typing
 import xdg.BaseDirectory
 
 from io import BytesIO
+
+
+X11_CLIPBOARD_CMD = 'xclip'
+WAYLAND_CLIPBOARD_CMD = 'wl-copy'
+DARWIN_CLIPBOARD_CMD = 'pbcopy'
+
 
 class ApikeyNotFoundException(Exception):
     pass
@@ -394,20 +401,54 @@ class Compressor:
             f_out.writelines(f_in)
         return dst
 
+
+class ConfigConstraint():
+    def __init__(self, cvar: str, match: str, pattern: typing.Any, enforce: bool = False):
+        self.cvar: str = cvar
+        self.match: str = match.lower()
+        self.pattern: typing.Any = pattern
+        self.enforce: bool = enforce
+
+    def validate(self, input: str) -> bool:
+        result = False
+        if self.match == 'enum' and (isinstance(self.pattern, tuple) or
+                                     isinstance(self.pattern, list)):
+            result = input in self.pattern
+            if self.enforce:
+                print(f"Invalid config setting for {self.cvar}: '{input}', " \
+                       "allowed: '{self.pattern}' ({self.match})", file=sys.stderr)
+                raise ValueError(f'Invalid {self.cvar} config setting: {input}')
+        return result
+
+
 class ConfigParser:
+
+    MATCHER = re.compile('^(?P<key>[^=]+)=(?P<quotechar>"?)(?P<value>.+)(?P=quotechar)$')
+
+    CONSTRAINTS = {
+        'clipboard_target': ConfigConstraint('clipboard_target', 'enum', ('none', 'off', 'default', 'primary', 'clipboard'))
+    }
+
     def __init__(self, file, ignoreMissing=False):
         self.config = {}
         self.config["pastebin"] = "https://paste.xinu.at"
-        self.config["clipboard_cmd"] = "xclip"
+        self.config["clipboard_cmd"] = X11_CLIPBOARD_CMD
         if os.uname()[0] == "Darwin":
-            self.config["clipboard_cmd"] = "pbcopy"
+            self.config["clipboard_cmd"] = DARWIN_CLIPBOARD_CMD
         elif os.environ.get('XDG_SESSION_TYPE') == 'wayland':
-            self.config["clipboard_cmd"] = "wl-copy"
+            self.config["clipboard_cmd"] = WAYLAND_CLIPBOARD_CMD
         self.config["apikey_file"] = os.path.join(xdg.BaseDirectory.xdg_config_home, "fb-client/apikey")
 
         self._parse(file, ignoreMissing=ignoreMissing)
+        self._validate()
 
         self.config["apikey_file"] = os.path.expandvars(self.config["apikey_file"])
+
+    def _validate(self):
+        for cvar, constraint in self.CONSTRAINTS.items():
+            if not constraint.validate(self.config[cvar]):
+                print(f"WARN: ignoring invalid config setting: '{cvar}'", file=sys.stderr)
+                del self.config[cvar]
 
     def _parse(self, file, ignoreMissing=False):
         try:
@@ -420,7 +461,7 @@ class ConfigParser:
 
         with fh:
             for line in fh:
-                matches = re.match('^(?P<key>[^=]+)=(?P<quotechar>"?)(?P<value>.+)(?P=quotechar)$', line)
+                matches = self.MATCHER.match(line)
                 if matches != None:
                     self.config[matches.group('key')] = matches.group('value')
 
@@ -645,9 +686,20 @@ class FBClient:
         self.setClipboard(' '.join(urls))
 
     def setClipboard(self, content):
+        cmd = self.config['clipboard_cmd']
+        args = []
+        target = self.config.get('clipboard_target')
+        if target in ('none', 'off'):
+            return
+        elif target == 'primary':
+            if cmd == WAYLAND_CLIPBOARD_CMD:
+                args.extend(['--primary'])
+        elif target == 'clipboard':
+            if cmd == X11_CLIPBOARD_CMD:
+                args.extend(['-selection', 'clipboard'])
         try:
             with open('/dev/null', 'w') as devnull:
-                p = subprocess.Popen([self.config['clipboard_cmd']], stdin=subprocess.PIPE, stdout=devnull, stderr=devnull)
+                p = subprocess.Popen([cmd, *args], stdin=subprocess.PIPE, stdout=devnull, stderr=devnull)
                 p.communicate(input=content.encode('utf-8'))
         except OSError as e:
             if e.errno == errno.ENOENT:
