@@ -432,6 +432,7 @@ class ConfigParser:
     def __init__(self, file, ignoreMissing=False):
         self.config = {}
         self.config["pastebin"] = "https://paste.xinu.at"
+        self.config["clipboard_target"] = "default"
         self.config["clipboard_cmd"] = X11_CLIPBOARD_CMD
         if os.uname()[0] == "Darwin":
             self.config["clipboard_cmd"] = DARWIN_CLIPBOARD_CMD
