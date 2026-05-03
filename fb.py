@@ -100,14 +100,22 @@ class CURLWrapper:
         self.config = config
         self.args = args
         self.curl = c
-        self.post = []
+        if hasattr(pycurl, 'MIMEPOST'):
+            self.mimepost = pycurl.CurlMime(self.curl)
+        else:
+            self.post = []
         self.progressBar = ProgressBar()
         self.serverConfig = None
 
     def __add_post(self, data):
         for item in data:
             for key, value in item.items():
-                self.post.append((key, (pycurl.FORM_CONTENTS, value.encode('utf-8'))))
+                if hasattr(pycurl, 'MIMEPOST'):
+                    part = self.mimepost.addpart()
+                    part.name(key)
+                    part.data(value.encode('utf-8'))
+                else:
+                    self.post.append((key, (pycurl.FORM_CONTENTS, value.encode('utf-8'))))
 
     def getServerConfig(self):
         if self.serverConfig is None:
@@ -141,7 +149,12 @@ class CURLWrapper:
             self.getServerConfig()
 
         if self.args.min_id_length:
-            self.post.append(("minimum-id-length", self.args.min_id_length))
+            if hasattr(pycurl, 'MIMEPOST'):
+                part = self.mimepost.addpart()
+                part.name("minimum-id-length")
+                part.data(self.args.min_id_length)
+            else:
+                self.post.append(("minimum-id-length", self.args.min_id_length))
 
         for file in files:
             if file.should_upload():
@@ -167,9 +180,14 @@ class CURLWrapper:
             if chunk:
                 for file in chunk:
                     counter+=1
-                    self.post.append(
-                        ("file["+str(counter)+"]", (pycurl.FORM_FILE, file.path.encode('utf-8')))
-                        )
+                    if hasattr(pycurl, 'MIMEPOST'):
+                        part = self.mimepost.addpart()
+                        part.name("file["+str(counter)+"]")
+                        part.filedata(file.path.encode('utf-8'))
+                    else:
+                        self.post.append(
+                            ("file["+str(counter)+"]", (pycurl.FORM_FILE, file.path.encode('utf-8')))
+                            )
                 ret = self.send_post_progress("/file/upload", [])
                 rets["ids"] += ret["ids"]
                 rets["urls"] += ret["urls"]
@@ -203,7 +221,10 @@ class CURLWrapper:
         self.__add_post(data)
 
         ret = self.perform()
-        self.post = []
+        if hasattr(pycurl, 'MIMEPOST'):
+            self.mimepost = pycurl.CurlMime(self.curl)
+        else:
+            self.post = []
         return ret
 
 
@@ -213,11 +234,19 @@ class CURLWrapper:
         self.__add_post(data)
 
         if self.args.min_id_length:
-            self.post.append(("minimum-id-length", self.args.min_id_length))
+            if hasattr(pycurl, 'MIMEPOST'):
+                part = self.mimepost.addpart()
+                part.name("minimum-id-length")
+                part.data(self.args.min_id_length)
+            else:
+                self.post.append(("minimum-id-length", self.args.min_id_length))
 
         self.addAPIKey()
         ret = self.perform()
-        self.post = []
+        if hasattr(pycurl, 'MIMEPOST'):
+            self.mimepost = pycurl.CurlMime(self.curl)
+        else:
+            self.post = []
         return ret
 
     def addAPIKey(self):
@@ -226,7 +255,10 @@ class CURLWrapper:
 
     def perform_simple(self):
         b = BytesIO()
-        self.curl.setopt(pycurl.HTTPPOST, self.post)
+        if hasattr(pycurl, 'MIMEPOST'):
+            self.curl.setopt(pycurl.MIMEPOST, self.mimepost)
+        else:
+            self.curl.setopt(pycurl.HTTPPOST, self.post)
         self.curl.setopt(pycurl.WRITEFUNCTION, b.write)
         self.curl.setopt(pycurl.PROGRESSFUNCTION, self.progressBar.progress)
         self.curl.perform()
