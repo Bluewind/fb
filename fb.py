@@ -260,7 +260,9 @@ class CURLWrapper:
         else:
             self.curl.setopt(pycurl.HTTPPOST, self.post)
         self.curl.setopt(pycurl.WRITEFUNCTION, b.write)
-        self.curl.setopt(pycurl.PROGRESSFUNCTION, self.progressBar.progress)
+        # Use XFERINFOFUNCTION if available, otherwise fallback to PROGRESSFUNCTION
+        progress_opt = getattr(pycurl, 'XFERINFOFUNCTION', pycurl.PROGRESSFUNCTION)
+        self.curl.setopt(progress_opt, self.progressBar.progress)
         self.curl.perform()
 
         if self.config["debug"]:
