@@ -211,7 +211,9 @@ class CURLWrapper:
 
     def send_post_progress(self, url, data = []):
         self.curl.setopt(pycurl.NOPROGRESS, 0)
+        self.curl.setopt(self.curl.MAX_SEND_SPEED_LARGE, self.args.upload_speed)
         ret = self.send_post(url, data)
+        self.curl.setopt(self.curl.MAX_SEND_SPEED_LARGE, 0)
         self.curl.setopt(pycurl.NOPROGRESS, 1)
         return ret
 
@@ -582,6 +584,8 @@ class FBClient:
                 help="extension for default highlighting (e.g. \"diff\")")
         upload_options.add_argument("-M", "--min-id-length", default="", action="store",
                 help="minimum length for the generated ID in the paste url")
+        upload_options.add_argument("--upload-speed", default=0, action="store", type=int,
+                help="maximum upload speed in bytes/s (default: unlimited = 0)")
 
         parser.add_argument("-c", "--compress", default=0, action="count",
                 help="Compress the file being uploaded with gz or xz if used 2 times. "
